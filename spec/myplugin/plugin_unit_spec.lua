@@ -9,12 +9,13 @@ describe("header-based-rate-limiting plugin", function()
         local stubbed_ngx = {
             ERR = "ERROR:",
             header = {},
-            log = function(...) end,
-            say = function(...) end,
-            exit = function(...) end
+            log = function() end,
+            say = function() end,
+            exit = function() end
         }
 
         _G.ngx = stubbed_ngx
+
         stub(stubbed_ngx, "say")
         stub(stubbed_ngx, "exit")
         stub(stubbed_ngx, "log")

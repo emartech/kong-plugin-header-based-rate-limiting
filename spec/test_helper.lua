@@ -15,7 +15,6 @@ function TestHelper.setup_service()
             ["Content-Type"] = "application/json"
         }
     })
-
 end
 
 function TestHelper.setup_route_for_service(service_id)
@@ -23,7 +22,7 @@ function TestHelper.setup_route_for_service(service_id)
         method = "POST",
         path = "/services/" .. service_id .. "/routes/",
         body = {
-            paths = {'/'},
+            paths = { '/' },
         },
         headers = {
             ["Content-Type"] = "application/json"
@@ -32,7 +31,7 @@ function TestHelper.setup_route_for_service(service_id)
 end
 
 function TestHelper.setup_plugin_for_service(service_id, plugin_name, config)
-    local request_body = {name = plugin_name}
+    local request_body = { name = plugin_name }
 
     if config ~= nil then
         request_body.config = config

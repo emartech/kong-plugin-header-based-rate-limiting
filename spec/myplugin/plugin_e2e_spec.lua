@@ -12,15 +12,15 @@ local function setup_test_env()
 
     local service = get_response_body(TestHelper.setup_service())
     local route = get_response_body(TestHelper.setup_route_for_service(service.id))
-    local plugin = get_response_body(TestHelper.setup_plugin_for_service(service.id, 'myplugin'))
+    local plugin = get_response_body(TestHelper.setup_plugin_for_service(service.id, 'header-based-rate-limiting'))
     local consumer = get_response_body(TestHelper.setup_consumer('TestUser'))
     return service, route, plugin, consumer
 end
 
-describe("Plugin: myplugin (access)", function()
+describe("Plugin: header-based-rate-limiting (access)", function()
 
     setup(function()
-        helpers.start_kong({ custom_plugins = 'myplugin' })
+        helpers.start_kong({ custom_plugins = 'header-based-rate-limiting' })
     end)
 
     teardown(function()

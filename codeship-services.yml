@@ -14,7 +14,7 @@ kong:
     - KONG_ADMIN_LISTEN=0.0.0.0:8001
     - KONG_ADMIN_LISTEN_SSL=0.0.0.0:8444
     - KONG_PLUGIN_PATH=/kong-plugins
-    - KONG_CUSTOM_PLUGINS=myplugin
+    - KONG_CUSTOM_PLUGINS=header-based-rate-limiting
     - KONG_NGINX_DAEMON=off
     - LUA_PATH=/kong-plugins/?.lua;/kong-plugins/?/init.lua;;
     - KONG_ADMIN_ACCESS_LOG=/proc/1/fd/1

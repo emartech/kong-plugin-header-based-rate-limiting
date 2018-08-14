@@ -1,13 +1,13 @@
-package = "kong-plugin-myplugin"
+package = "kong-plugin-header-based-rate-limiting"
 version = "0.1.0-1"
 supported_platforms = {"linux", "macosx"}
 source = {
-  url = "git+https://github.com/emartech/kong-plugin-boilerplate.git",
+  url = "git+https://github.com/emartech/kong-plugin-header-based-rate-limiting.git",
   tag = "0.1.0"
 }
 description = {
-  summary = "Boilerplate for Kong API gateway plugins.",
-  homepage = "https://github.com/emartech/kong-plugin-boilerplate",
+  summary = "Rate limit incoming requests based on its headers.",
+  homepage = "https://github.com/emartech/kong-plugin-header-based-rate-limiting",
   license = "MIT"
 }
 dependencies = {
@@ -18,7 +18,7 @@ dependencies = {
 build = {
   type = "builtin",
   modules = {
-    ["kong.plugins.myplugin.handler"] = "kong/plugins/myplugin/handler.lua",
-    ["kong.plugins.myplugin.schema"] = "kong/plugins/myplugin/schema.lua",
+    ["kong.plugins.header-based-rate-limiting.handler"] = "kong/plugins/header-based-rate-limiting/handler.lua",
+    ["kong.plugins.header-based-rate-limiting.schema"] = "kong/plugins/header-based-rate-limiting/schema.lua",
   }
 }

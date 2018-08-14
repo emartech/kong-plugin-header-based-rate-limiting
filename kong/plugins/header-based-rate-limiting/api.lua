@@ -1,5 +1,5 @@
 local crud = require "kong.api.crud_helpers"
-local Redis = require "resty.redis"
+local RedisFactory = require "kong.plugins.header-based-rate-limiting.redis_factory"
 
 return {
     ["/plugins/:plugin_id/redis-ping"] = {
@@ -14,24 +14,15 @@ return {
                 return helpers.responses.send_HTTP_BAD_REQUEST("Plugin is not of type header-based-rate-limiting")
             end
 
-            local redis = Redis:new()
-
-            local success, _ = redis:connect(
-                self.plugin.config.redis.host,
-                self.plugin.config.redis.port
-            )
+            local success, redis_or_error = pcall(function(config)
+                return RedisFactory.create(config)
+            end, self.plugin.config.redis)
 
             if not success then
-                return helpers.responses.send_HTTP_BAD_REQUEST("Could not connect to Redis")
+                return helpers.responses.send_HTTP_BAD_REQUEST(redis_or_error.message)
             end
 
-            local success, _ = redis:select(self.plugin.config.redis.db)
-
-            if not success then
-                return helpers.responses.send_HTTP_BAD_REQUEST("Could not select Redis DB")
-            end
-
-            local result = redis:ping()
+            local result = redis_or_error:ping()
 
             helpers.responses.send_HTTP_OK(result)
         end

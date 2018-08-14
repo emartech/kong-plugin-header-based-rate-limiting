@@ -1,0 +1,5 @@
+- type: serial
+  service: kong
+  steps:
+    - name: run_tests
+      command: bash -c "/kong/bin/kong migrations up && cd /kong && bin/busted /kong-plugins/spec"

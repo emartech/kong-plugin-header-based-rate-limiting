@@ -2,7 +2,6 @@ local plugin_handler = require "kong.plugins.header-based-rate-limiting.handler"
 
 describe("header-based-rate-limiting plugin", function()
     local old_ngx = _G.ngx
-    -- local stubbed_ndx = nil
     local mock_config
     local handler
 

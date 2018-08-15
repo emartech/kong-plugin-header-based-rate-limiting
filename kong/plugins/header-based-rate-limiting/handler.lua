@@ -20,7 +20,7 @@ function HeaderBasedRateLimitingHandler:access(conf)
 
     local request_count = pool:request_count("ratelimit")
 
-    if request_count > conf.default_rate_limit then
+    if request_count >= conf.default_rate_limit then
         responses.send(429, "Rate limit exceeded")
     else
         pool:increment("ratelimit")

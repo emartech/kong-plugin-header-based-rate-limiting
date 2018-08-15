@@ -11,31 +11,48 @@ describe("Plugin: header-based-rate-limiting (access)", function()
         helpers.stop_kong(nil)
     end)
 
+    local service_id, route_id
+
     before_each(function()
         helpers.dao:truncate_tables()
+
+        local service_response = assert(helpers.admin_client():send({
+            method = "POST",
+            path = "/services/",
+            body = {
+                name = 'test-service',
+                url = 'http://mockbin:8080/request'
+            },
+            headers = {
+                ["Content-Type"] = "application/json"
+            }
+        }))
+
+        local raw_service_response_body = service_response:read_body()
+
+        service_id = cjson.decode(raw_service_response_body).id
+
+        local route_response = assert(helpers.admin_client():send({
+            method = "POST",
+            path = "/routes/",
+            body = {
+                service = {
+                    id = service_id
+                },
+                paths = { '/test-route' }
+            },
+            headers = {
+                ["Content-Type"] = "application/json"
+            }
+        }))
+
+        local raw_route_response_body = route_response:read_body()
+
+        route_id = cjson.decode(raw_route_response_body).id
     end)
 
     describe("admin API", function()
         describe("/plugins/:plugin_id/redis-ping", function()
-            local service_id
-
-            before_each(function()
-                local service_response = assert(helpers.admin_client():send({
-                    method = "POST",
-                    path = "/services/",
-                    body = {
-                        name = 'test-service',
-                        url = 'http://mockbin:8080/request'
-                    },
-                    headers = {
-                        ["Content-Type"] = "application/json"
-                    }
-                }))
-
-                local raw_service_response_body = service_response:read_body()
-
-                service_id = cjson.decode(raw_service_response_body).id
-            end)
 
             context("when plugin does not exist", function()
                 it("should respond with HTTP 404", function()
@@ -57,7 +74,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                         method = "POST",
                         path = "/services/" .. service_id .. "/plugins",
                         body = {
-                            name = "basic-auth"
+                            name = "key-auth"
                         },
                         headers = {
                             ["Content-Type"] = "application/json"
@@ -92,7 +109,8 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                             config = {
                                 redis = {
                                     host = "some-redis-host"
-                                }
+                                },
+                                default_rate_limit = 1
                             }
                         },
                         headers = {
@@ -129,7 +147,8 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                                 redis = {
                                     host = "kong-redis",
                                     db = 128
-                                }
+                                },
+                                default_rate_limit = 1
                             }
                         },
                         headers = {
@@ -164,7 +183,8 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                         config = {
                             redis = {
                                 host = "kong-redis"
-                            }
+                            },
+                            default_rate_limit = 1
                         }
                     },
                     headers = {
@@ -188,6 +208,50 @@ describe("Plugin: header-based-rate-limiting (access)", function()
 
                 assert.are.equal("PONG", body.message)
             end)
+        end)
+    end)
+
+    describe("Rate limiting", function()
+        local plugin_id
+
+        before_each(function()
+            local plugin_response = assert(helpers.admin_client():send({
+                method = "POST",
+                path = "/services/" .. service_id .. "/plugins",
+                body = {
+                    name = "header-based-rate-limiting",
+                    config = {
+                        redis = {
+                            host = "kong-redis"
+                        },
+                        default_rate_limit = 3
+                    }
+                },
+                headers = {
+                    ["Content-Type"] = "application/json"
+                }
+            }))
+
+            local raw_plugin_response_body = plugin_response:read_body()
+            plugin_id = cjson.decode(raw_plugin_response_body).id
+        end)
+
+        it("should rate limit after given amount of requests", function()
+            for i = 1, 3 do
+                local response = assert(helpers.proxy_client():send({
+                    method = "GET",
+                    path = "/test-route"
+                }))
+
+                assert.res_status(200, response)
+            end
+
+            local response = assert(helpers.proxy_client():send({
+                method = "GET",
+                path = "/test-route"
+            }))
+
+            assert.res_status(429, response)
         end)
     end)
 end)

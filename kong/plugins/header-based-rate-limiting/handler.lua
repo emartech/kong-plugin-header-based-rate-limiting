@@ -1,4 +1,8 @@
 local BasePlugin = require "kong.plugins.base_plugin"
+local responses = require "kong.tools.responses"
+
+local RateLimitPool = require "kong.plugins.header-based-rate-limiting.rate_limit_pool"
+local RedisFactory = require "kong.plugins.header-based-rate-limiting.redis_factory"
 
 local HeaderBasedRateLimitingHandler = BasePlugin:extend()
 
@@ -11,12 +15,15 @@ end
 function HeaderBasedRateLimitingHandler:access(conf)
     HeaderBasedRateLimitingHandler.super.access(self)
 
-    if conf.say_hello then
-        ngx.log(ngx.ERR, "============ Hey World! ============")
-        ngx.header["Hello-World"] = "Hey!"
+    local redis = RedisFactory.create(conf.redis)
+    local pool = RateLimitPool(redis)
+
+    local request_count = pool:request_count("ratelimit")
+
+    if request_count > conf.default_rate_limit then
+        responses.send(429, "Rate limit exceeded")
     else
-        ngx.log(ngx.ERR, "============ Bye World! ============")
-        ngx.header["Hello-World"] = "Bye!"
+        pool:increment("ratelimit")
     end
 end
 

@@ -10,6 +10,7 @@ return {
                     db = { type = "number", required = true, default = 0 }
                 }
             }
-        }
+        },
+        default_rate_limit = { type = "number", required = true }
     }
 }

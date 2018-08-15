@@ -38,7 +38,7 @@ function HeaderBasedRateLimitingHandler:access(conf)
         local request_count = pool:request_count(rate_limit_key)
 
         local time_reset = os.date("!%Y-%m-%dT%H:%M:00Z", os.time() + 60)
---
+
         ngx.req.set_header(RATE_LIMIT_HEADER, conf.default_rate_limit)
         ngx.req.set_header(REMAINING_REQUESTS_HEADER, conf.default_rate_limit - (request_count + 1))
         ngx.req.set_header(POOL_RESET_HEADER, time_reset)

@@ -1,7 +1,14 @@
 local cjson = require "cjson"
 local helpers = require "spec.helpers"
 
+local RedisFactory = require "kong.plugins.header-based-rate-limiting.redis_factory"
+
 describe("Plugin: header-based-rate-limiting (access)", function()
+    local redis = RedisFactory.create({
+        host = "kong-redis",
+        port = 6379,
+        db = 0
+    })
 
     setup(function()
         helpers.start_kong({ custom_plugins = 'header-based-rate-limiting' })
@@ -15,6 +22,8 @@ describe("Plugin: header-based-rate-limiting (access)", function()
 
     before_each(function()
         helpers.dao:truncate_tables()
+
+        redis:flushall()
 
         local service_response = assert(helpers.admin_client():send({
             method = "POST",

@@ -4,9 +4,8 @@ local responses = require "kong.tools.responses"
 local RateLimitPool = require "kong.plugins.header-based-rate-limiting.rate_limit_pool"
 local RedisFactory = require "kong.plugins.header-based-rate-limiting.redis_factory"
 
-local function consumer_identifier(header_name)
-    local headers = ngx.req.get_headers()
-    return headers[header_name] or ""
+local function consumer_identifier(header_name, all_headers)
+    return all_headers[header_name] or ""
 end
 
 local function plugin_identifier(config)
@@ -30,7 +29,7 @@ function HeaderBasedRateLimitingHandler:access(conf)
         local redis = result
         local pool = RateLimitPool(redis)
 
-        local rate_limit_key = "ratelimit:" .. consumer_identifier("x-custom-identifyer") .. ":" .. plugin_identifier(conf)
+        local rate_limit_key = "ratelimit:" .. consumer_identifier("x-custom-identifier", ngx.req.get_headers()) .. ":" .. plugin_identifier(conf)
 
         local request_count = pool:request_count(rate_limit_key)
 

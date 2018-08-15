@@ -299,7 +299,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                             method = "GET",
                             path = "/test-route",
                             headers = {
-                                ["X-Custom-Identifyer"] = "api_consumer"
+                                ["X-Custom-Identifier"] = "api_consumer"
                             }
                         }))
 
@@ -310,7 +310,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                         method = "GET",
                         path = "/test-route",
                         headers = {
-                            ["X-Custom-Identifyer"] = "api_consumer",
+                            ["X-Custom-Identifier"] = "api_consumer",
                         }
                     }))
 
@@ -321,7 +321,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                             method = "GET",
                             path = "/test-route",
                             headers = {
-                                ["X-Custom-Identifyer"] = "other_api_consumer",
+                                ["X-Custom-Identifier"] = "other_api_consumer",
                             }
                         }))
 
@@ -332,7 +332,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                         method = "GET",
                         path = "/test-route",
                         headers = {
-                            ["X-Custom-Identifyer"] = "other_api_consumer",
+                            ["X-Custom-Identifier"] = "other_api_consumer",
                         }
                     }))
 
@@ -394,7 +394,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                             method = "GET",
                             path = "/test-route",
                             headers = {
-                                ["X-Custom-Identifyer"] = "api_consumer"
+                                ["X-Custom-Identifier"] = "api_consumer"
                             }
                         }))
 
@@ -405,7 +405,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                         method = "GET",
                         path = "/test-route",
                         headers = {
-                            ["X-Custom-Identifyer"] = "api_consumer",
+                            ["X-Custom-Identifier"] = "api_consumer",
                         }
                     }))
 
@@ -416,7 +416,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                             method = "GET",
                             path = "/other-test-route",
                             headers = {
-                                ["X-Custom-Identifyer"] = "api_consumer",
+                                ["X-Custom-Identifier"] = "api_consumer",
                             }
                         }))
 
@@ -427,7 +427,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                         method = "GET",
                         path = "/other-test-route",
                         headers = {
-                            ["X-Custom-Identifyer"] = "api_consumer",
+                            ["X-Custom-Identifier"] = "api_consumer",
                         }
                     }))
 
@@ -528,7 +528,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                             method = "GET",
                             path = "/first-route",
                             headers = {
-                                ["X-Custom-Identifyer"] = "api_consumer"
+                                ["X-Custom-Identifier"] = "api_consumer"
                             }
                         }))
 
@@ -539,7 +539,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                         method = "GET",
                         path = "/first-route",
                         headers = {
-                            ["X-Custom-Identifyer"] = "api_consumer",
+                            ["X-Custom-Identifier"] = "api_consumer",
                         }
                     }))
 
@@ -550,7 +550,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                             method = "GET",
                             path = "/second-route",
                             headers = {
-                                ["X-Custom-Identifyer"] = "api_consumer",
+                                ["X-Custom-Identifier"] = "api_consumer",
                             }
                         }))
 
@@ -561,7 +561,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                         method = "GET",
                         path = "/second-route",
                         headers = {
-                            ["X-Custom-Identifyer"] = "api_consumer",
+                            ["X-Custom-Identifier"] = "api_consumer",
                         }
                     }))
 

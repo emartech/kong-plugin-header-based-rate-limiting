@@ -14,9 +14,7 @@ return {
                 return helpers.responses.send_HTTP_BAD_REQUEST("Plugin is not of type header-based-rate-limiting")
             end
 
-            local success, redis_or_error = pcall(function(config)
-                return RedisFactory.create(config)
-            end, self.plugin.config.redis)
+            local success, redis_or_error = pcall(RedisFactory.create, self.plugin.config.redis)
 
             if not success then
                 return helpers.responses.send_HTTP_BAD_REQUEST(redis_or_error.message)

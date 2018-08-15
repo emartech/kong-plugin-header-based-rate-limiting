@@ -221,46 +221,76 @@ describe("Plugin: header-based-rate-limiting (access)", function()
     end)
 
     describe("Rate limiting", function()
-        local plugin_id
-
-        before_each(function()
-            local plugin_response = assert(helpers.admin_client():send({
-                method = "POST",
-                path = "/services/" .. service_id .. "/plugins",
-                body = {
-                    name = "header-based-rate-limiting",
-                    config = {
-                        redis = {
-                            host = "kong-redis"
-                        },
-                        default_rate_limit = 3
+        context("when Redis is unreachable", function()
+            it("shouldn't block the request", function()
+                assert(helpers.admin_client():send({
+                    method = "POST",
+                    path = "/services/" .. service_id .. "/plugins",
+                    body = {
+                        name = "header-based-rate-limiting",
+                        config = {
+                            redis = {
+                                host = "non-existing-host"
+                            },
+                            default_rate_limit = 1
+                        }
+                    },
+                    headers = {
+                        ["Content-Type"] = "application/json"
                     }
-                },
-                headers = {
-                    ["Content-Type"] = "application/json"
-                }
-            }))
+                }))
 
-            local raw_plugin_response_body = plugin_response:read_body()
-            plugin_id = cjson.decode(raw_plugin_response_body).id
-        end)
-
-        it("should rate limit after given amount of requests", function()
-            for i = 1, 3 do
                 local response = assert(helpers.proxy_client():send({
                     method = "GET",
                     path = "/test-route"
                 }))
 
                 assert.res_status(200, response)
-            end
+            end)
+        end)
 
-            local response = assert(helpers.proxy_client():send({
-                method = "GET",
-                path = "/test-route"
-            }))
+        context("when Redis is configured properly", function()
+            local plugin_id
 
-            assert.res_status(429, response)
+            before_each(function()
+                local plugin_response = assert(helpers.admin_client():send({
+                    method = "POST",
+                    path = "/services/" .. service_id .. "/plugins",
+                    body = {
+                        name = "header-based-rate-limiting",
+                        config = {
+                            redis = {
+                                host = "kong-redis"
+                            },
+                            default_rate_limit = 3
+                        }
+                    },
+                    headers = {
+                        ["Content-Type"] = "application/json"
+                    }
+                }))
+
+                local raw_plugin_response_body = plugin_response:read_body()
+                plugin_id = cjson.decode(raw_plugin_response_body).id
+            end)
+
+            it("should rate limit after given amount of requests", function()
+                for i = 1, 3 do
+                    local response = assert(helpers.proxy_client():send({
+                        method = "GET",
+                        path = "/test-route"
+                    }))
+
+                    assert.res_status(200, response)
+                end
+
+                local response = assert(helpers.proxy_client():send({
+                    method = "GET",
+                    path = "/test-route"
+                }))
+
+                assert.res_status(429, response)
+            end)
         end)
     end)
 end)

@@ -10,7 +10,7 @@ local function consumer_identifier(header_name)
 end
 
 local function plugin_identifier(config)
-    return (config.service_id or "")
+    return (config.service_id or "") .. ":" .. (config.route_id or "")
 end
 
 local HeaderBasedRateLimitingHandler = BasePlugin:extend()

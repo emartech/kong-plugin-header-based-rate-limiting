@@ -434,6 +434,140 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                     assert.res_status(429, response)
                 end)
             end)
+
+            context("when plugin is configured on multiple routes", function()
+                it("should track rate limit pools separately", function()
+                    local service_response = assert(helpers.admin_client():send({
+                        method = "POST",
+                        path = "/services/",
+                        body = {
+                            name = 'common-service',
+                            url = 'http://mockbin:8080/request'
+                        },
+                        headers = {
+                            ["Content-Type"] = "application/json"
+                        }
+                    }))
+
+                    local raw_service_response_body = service_response:read_body()
+
+                    local service_id = cjson.decode(raw_service_response_body).id
+
+                    local first_route_response = assert(helpers.admin_client():send({
+                        method = "POST",
+                        path = "/routes/",
+                        body = {
+                            service = {
+                                id = service_id
+                            },
+                            paths = { '/first-route' }
+                        },
+                        headers = {
+                            ["Content-Type"] = "application/json"
+                        }
+                    }))
+
+                    local raw_first_route_response_body = first_route_response:read_body()
+
+                    local first_route_id = cjson.decode(raw_first_route_response_body).id
+
+                    assert(helpers.admin_client():send({
+                        method = "POST",
+                        path = "/routes/" .. first_route_id .. "/plugins",
+                        body = {
+                            name = "header-based-rate-limiting",
+                            config = {
+                                redis = {
+                                    host = "kong-redis"
+                                },
+                                default_rate_limit = 3
+                            }
+                        },
+                        headers = {
+                            ["Content-Type"] = "application/json"
+                        }
+                    }))
+
+                    local second_route_response = assert(helpers.admin_client():send({
+                        method = "POST",
+                        path = "/routes/",
+                        body = {
+                            service = {
+                                id = service_id
+                            },
+                            paths = { '/second-route' }
+                        },
+                        headers = {
+                            ["Content-Type"] = "application/json"
+                        }
+                    }))
+
+                    local raw_second_route_response_body = second_route_response:read_body()
+
+                    local second_route_id = cjson.decode(raw_second_route_response_body).id
+
+                    assert(helpers.admin_client():send({
+                        method = "POST",
+                        path = "/routes/" .. second_route_id .. "/plugins",
+                        body = {
+                            name = "header-based-rate-limiting",
+                            config = {
+                                redis = {
+                                    host = "kong-redis"
+                                },
+                                default_rate_limit = 4
+                            }
+                        },
+                        headers = {
+                            ["Content-Type"] = "application/json"
+                        }
+                    }))
+
+                    for i = 1, 3 do
+                        local response = assert(helpers.proxy_client():send({
+                            method = "GET",
+                            path = "/first-route",
+                            headers = {
+                                ["X-Custom-Identifyer"] = "api_consumer"
+                            }
+                        }))
+
+                        assert.res_status(200, response)
+                    end
+
+                    local response = assert(helpers.proxy_client():send({
+                        method = "GET",
+                        path = "/first-route",
+                        headers = {
+                            ["X-Custom-Identifyer"] = "api_consumer",
+                        }
+                    }))
+
+                    assert.res_status(429, response)
+
+                    for i = 1, 4 do
+                        local response = assert(helpers.proxy_client():send({
+                            method = "GET",
+                            path = "/second-route",
+                            headers = {
+                                ["X-Custom-Identifyer"] = "api_consumer",
+                            }
+                        }))
+
+                        assert.res_status(200, response)
+                    end
+
+                    local response = assert(helpers.proxy_client():send({
+                        method = "GET",
+                        path = "/second-route",
+                        headers = {
+                            ["X-Custom-Identifyer"] = "api_consumer",
+                        }
+                    }))
+
+                    assert.res_status(429, response)
+                end)
+            end)
         end)
     end)
 end)

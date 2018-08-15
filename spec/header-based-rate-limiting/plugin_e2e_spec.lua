@@ -291,6 +291,54 @@ describe("Plugin: header-based-rate-limiting (access)", function()
 
                 assert.res_status(429, response)
             end)
+
+            context("when there are multiple consumers", function()
+                it("should track rate limit pools separately", function()
+                    for i = 1, 3 do
+                        local response = assert(helpers.proxy_client():send({
+                            method = "GET",
+                            path = "/test-route",
+                            headers = {
+                                ["X-Custom-Identifyer"] = "api_consumer"
+                            }
+                        }))
+
+                        assert.res_status(200, response)
+                    end
+
+                    local response = assert(helpers.proxy_client():send({
+                        method = "GET",
+                        path = "/test-route",
+                        headers = {
+                            ["X-Custom-Identifyer"] = "api_consumer",
+                        }
+                    }))
+
+                    assert.res_status(429, response)
+
+                    for i = 1, 3 do
+                        local response = assert(helpers.proxy_client():send({
+                            method = "GET",
+                            path = "/test-route",
+                            headers = {
+                                ["X-Custom-Identifyer"] = "other_api_consumer",
+                            }
+                        }))
+
+                        assert.res_status(200, response)
+                    end
+
+                    local response = assert(helpers.proxy_client():send({
+                        method = "GET",
+                        path = "/test-route",
+                        headers = {
+                            ["X-Custom-Identifyer"] = "other_api_consumer",
+                        }
+                    }))
+
+                    assert.res_status(429, response)
+                end)
+            end)
         end)
     end)
 end)

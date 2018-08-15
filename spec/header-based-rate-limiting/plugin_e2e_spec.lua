@@ -588,6 +588,78 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                     assert.res_status(429, response)
                 end)
             end)
+
+            context("when darklaunch mode is enabled", function()
+                it("should let request through even after reaching the rate limit", function()
+                    local service_response = assert(helpers.admin_client():send({
+                        method = "POST",
+                        path = "/services/",
+                        body = {
+                            name = 'another-service',
+                            url = 'http://mockbin:8080/request'
+                        },
+                        headers = {
+                            ["Content-Type"] = "application/json"
+                        }
+                    }))
+
+                    local raw_service_response_body = service_response:read_body()
+
+                    local service_id = cjson.decode(raw_service_response_body).id
+
+                    local route_response = assert(helpers.admin_client():send({
+                        method = "POST",
+                        path = "/routes/",
+                        body = {
+                            service = {
+                                id = service_id
+                            },
+                            paths = { '/another-route' }
+                        },
+                        headers = {
+                            ["Content-Type"] = "application/json"
+                        }
+                    }))
+
+                    local raw_route_response_body = route_response:read_body()
+
+                    local route_id = cjson.decode(raw_route_response_body).id
+
+                    assert(helpers.admin_client():send({
+                        method = "POST",
+                        path = "/services/" .. service_id .. "/plugins",
+                        body = {
+                            name = "header-based-rate-limiting",
+                            config = {
+                                redis = {
+                                    host = "kong-redis"
+                                },
+                                default_rate_limit = 3,
+                                log_only = true
+                            }
+                        },
+                        headers = {
+                            ["Content-Type"] = "application/json"
+                        }
+                    }))
+
+                    for i = 1, 5 do
+                        local response = assert(helpers.proxy_client():send({
+                            method = "GET",
+                            path = "/another-route",
+                            headers = {
+                                ["X-Custom-Identifier"] = "api_consumer",
+                            }
+                        }))
+
+                        assert.res_status(200, response)
+
+                        assert.are.equal(nil, response.headers['x-ratelimit-remaining'])
+                        assert.are.equal(nil, response.headers['x-ratelimit-limit'])
+                        assert.are.equal(nil, response.headers['x-ratelimit-reset'])
+                    end
+                end)
+            end)
         end)
     end)
 end)

@@ -39,12 +39,16 @@ function HeaderBasedRateLimitingHandler:access(conf)
 
         local time_reset = os.date("!%Y-%m-%dT%H:%M:00Z", os.time() + 60)
 
-        ngx.header[RATE_LIMIT_HEADER] = conf.default_rate_limit
-        ngx.header[REMAINING_REQUESTS_HEADER] = conf.default_rate_limit - (request_count + 1)
-        ngx.header[POOL_RESET_HEADER] = time_reset
+        if not conf.log_only then
+            ngx.header[RATE_LIMIT_HEADER] = conf.default_rate_limit
+            ngx.header[REMAINING_REQUESTS_HEADER] = conf.default_rate_limit - (request_count + 1)
+            ngx.header[POOL_RESET_HEADER] = time_reset
+        end
 
         if request_count >= conf.default_rate_limit then
-            responses.send(429, "Rate limit exceeded")
+            if not conf.log_only then
+                responses.send(429, "Rate limit exceeded")
+            end
         else
             pool:increment(rate_limit_key)
         end

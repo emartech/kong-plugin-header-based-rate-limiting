@@ -11,6 +11,7 @@ return {
                 }
             }
         },
-        default_rate_limit = { type = "number", required = true }
+        default_rate_limit = { type = "number", required = true },
+        log_only = { type = "boolean", required = true, default = false }
     }
 }

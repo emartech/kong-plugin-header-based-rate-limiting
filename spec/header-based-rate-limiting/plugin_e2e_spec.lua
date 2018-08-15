@@ -251,6 +251,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
 
         context("when Redis is configured properly", function()
             local plugin_id
+            local default_rate_limit = 3
 
             before_each(function()
                 local plugin_response = assert(helpers.admin_client():send({
@@ -262,7 +263,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                             redis = {
                                 host = "kong-redis"
                             },
-                            default_rate_limit = 3
+                            default_rate_limit = default_rate_limit
                         }
                     },
                     headers = {
@@ -290,6 +291,25 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                 }))
 
                 assert.res_status(429, response)
+            end)
+
+            it("should set rate limit headers", function()
+                local time_reset = os.date("!%Y-%m-%dT%H:%M:00Z", os.time() + 60)
+
+                local response = assert(helpers.proxy_client():send({
+                    method = "GET",
+                    path = "/test-route",
+                    headers = {
+                        ["X-Custom-Identifier"] = "api_consumer",
+                    }
+                }))
+
+                local raw_response_body = response:read_body()
+                headers = cjson.decode(raw_response_body).headers
+
+                assert.are.equal('2', headers['x-ratelimit-remaining'])
+                assert.are.equal(tostring(default_rate_limit), headers['x-ratelimit-limit'])
+                assert.are.equal(time_reset, headers['x-ratelimit-reset'])
             end)
 
             context("when there are multiple consumers", function()

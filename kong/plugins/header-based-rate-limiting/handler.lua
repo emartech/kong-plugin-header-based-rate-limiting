@@ -12,6 +12,10 @@ local function plugin_identifier(config)
     return (config.service_id or "") .. ":" .. (config.route_id or "")
 end
 
+local RATE_LIMIT_HEADER = "X-RateLimit-Limit"
+local REMAINING_REQUESTS_HEADER = "X-Ratelimit-Remaining"
+local POOL_RESET_HEADER = "X-Ratelimit-Reset"
+
 local HeaderBasedRateLimitingHandler = BasePlugin:extend()
 
 HeaderBasedRateLimitingHandler.PRIORITY = 2000
@@ -32,6 +36,12 @@ function HeaderBasedRateLimitingHandler:access(conf)
         local rate_limit_key = "ratelimit:" .. consumer_identifier("x-custom-identifier", ngx.req.get_headers()) .. ":" .. plugin_identifier(conf)
 
         local request_count = pool:request_count(rate_limit_key)
+
+--        local time_reset = os.date("!%Y-%m-%dT%H:%M:00Z", os.time() + 60)
+--
+--        ngx.req.set_header(RATE_LIMIT_HEADER, conf.default_rate_limit)
+--        ngx.req.set_header(REMAINING_REQUESTS_HEADER, conf.default_rate_limit - request_count)
+--        ngx.req.set_header(POOL_RESET_HEADER, time_reset)
 
         if request_count >= conf.default_rate_limit then
             responses.send(429, "Rate limit exceeded")

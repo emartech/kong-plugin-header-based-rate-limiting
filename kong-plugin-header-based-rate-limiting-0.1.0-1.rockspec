@@ -18,7 +18,6 @@ dependencies = {
 build = {
   type = "builtin",
   modules = {
-  modules = {
     ["kong.plugins.header-based-rate-limiting.api"] = "kong/plugins/header-based-rate-limiting/api.lua",
     ["kong.plugins.header-based-rate-limiting.handler"] = "kong/plugins/header-based-rate-limiting/handler.lua",
     ["kong.plugins.header-based-rate-limiting.schema"] = "kong/plugins/header-based-rate-limiting/schema.lua",

@@ -28,7 +28,7 @@ function HeaderBasedRateLimitingHandler:access(conf)
         local pool = RateLimitPool(redis)
 
         local rate_limit_key = RateLimitKey.generate(
-            ConsumerIdentifier.generate({ "x-custom-identifier" }, ngx.req.get_headers()),
+            ConsumerIdentifier.generate(conf.identification_headers, ngx.req.get_headers()),
             conf
         )
 

@@ -119,7 +119,8 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                                 redis = {
                                     host = "some-redis-host"
                                 },
-                                default_rate_limit = 1
+                                default_rate_limit = 1,
+                                identification_headers = { "x-custom-identifier" }
                             }
                         },
                         headers = {
@@ -157,7 +158,8 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                                     host = "kong-redis",
                                     db = 128
                                 },
-                                default_rate_limit = 1
+                                default_rate_limit = 1,
+                                identification_headers = { "x-custom-identifier" }
                             }
                         },
                         headers = {
@@ -193,7 +195,8 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                             redis = {
                                 host = "kong-redis"
                             },
-                            default_rate_limit = 1
+                            default_rate_limit = 1,
+                            identification_headers = { "x-custom-identifier" }
                         }
                     },
                     headers = {
@@ -232,7 +235,8 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                             redis = {
                                 host = "non-existing-host"
                             },
-                            default_rate_limit = 1
+                            default_rate_limit = 1,
+                            identification_headers = { "x-custom-identifier" }
                         }
                     },
                     headers = {
@@ -263,7 +267,8 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                             redis = {
                                 host = "kong-redis"
                             },
-                            default_rate_limit = default_rate_limit
+                            default_rate_limit = default_rate_limit,
+                            identification_headers = { "x-custom-identifier" }
                         }
                     },
                     headers = {
@@ -401,7 +406,8 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                                 redis = {
                                     host = "kong-redis"
                                 },
-                                default_rate_limit = 4
+                                default_rate_limit = 4,
+                                identification_headers = { "x-custom-identifier" }
                             }
                         },
                         headers = {
@@ -500,7 +506,8 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                                 redis = {
                                     host = "kong-redis"
                                 },
-                                default_rate_limit = 3
+                                default_rate_limit = 3,
+                                identification_headers = { "x-custom-identifier" }
                             }
                         },
                         headers = {
@@ -535,7 +542,8 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                                 redis = {
                                     host = "kong-redis"
                                 },
-                                default_rate_limit = 4
+                                default_rate_limit = 4,
+                                identification_headers = { "x-custom-identifier" }
                             }
                         },
                         headers = {
@@ -635,7 +643,8 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                                     host = "kong-redis"
                                 },
                                 default_rate_limit = 3,
-                                log_only = true
+                                log_only = true,
+                                identification_headers = { "x-custom-identifier" }
                             }
                         },
                         headers = {
@@ -659,6 +668,111 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                         assert.are.equal(nil, response.headers['x-ratelimit-reset'])
                     end
                 end)
+            end)
+
+            context("when plugin is configured whith multiple identification headers", function()
+
+                it("should track rate limit pools separately based on them",function()
+                    local service_response = assert(helpers.admin_client():send({
+                        method = "POST",
+                        path = "/services/",
+                        body = {
+                            name = 'common-service',
+                            url = 'http://mockbin:8080/request'
+                        },
+                        headers = {
+                            ["Content-Type"] = "application/json"
+                        }
+                    }))
+
+                    local raw_service_response_body = service_response:read_body()
+
+                    local service_id = cjson.decode(raw_service_response_body).id
+
+                    local route_response = assert(helpers.admin_client():send({
+                        method = "POST",
+                        path = "/routes/",
+                        body = {
+                            service = {
+                                id = service_id
+                            },
+                            paths = { '/route' }
+                        },
+                        headers = {
+                            ["Content-Type"] = "application/json"
+                        }
+                    }))
+
+                    local route_response_body = route_response:read_body()
+
+                    local route_id = cjson.decode(route_response_body).id
+
+                    assert(helpers.admin_client():send({
+                        method = "POST",
+                        path = "/routes/" .. route_id .. "/plugins",
+                        body = {
+                            name = "header-based-rate-limiting",
+                            config = {
+                                redis = {
+                                    host = "kong-redis"
+                                },
+                                default_rate_limit = 3,
+                                identification_headers = { "x-customer-id", "x-kong-consumer" }
+                            }
+                        },
+                        headers = {
+                            ["Content-Type"] = "application/json"
+                        }
+                    }))
+
+                    for i = 1, 3 do
+                        local response = assert(helpers.proxy_client():send({
+                            method = "GET",
+                            path = "/route",
+                            headers = {
+                                ["x-customer-id"] = "api_consumer",
+                            }
+                        }))
+
+                        assert.res_status(200, response)
+                    end
+
+                    local response = assert(helpers.proxy_client():send({
+                        method = "GET",
+                        path = "/route",
+                        headers = {
+                            ["x-customer-id"] = "api_consumer",
+                        }
+                    }))
+
+                    assert.res_status(429, response)
+
+                    for i = 1, 3 do
+                        local response = assert(helpers.proxy_client():send({
+                            method = "GET",
+                            path = "/route",
+                            headers = {
+                                ["x-customer-id"] = "api_consumer",
+                                ["x-kong-consumer"] = 1234
+                            }
+                        }))
+
+                        assert.res_status(200, response)
+                    end
+
+                    local response = assert(helpers.proxy_client():send({
+                        method = "GET",
+                        path = "/route",
+                        headers = {
+                            ["x-customer-id"] = "api_consumer",
+                            ["x-kong-consumer"] = 1234
+                        }
+                    }))
+
+                    assert.res_status(429, response)
+
+                end)
+
             end)
         end)
     end)

@@ -18,7 +18,7 @@ local POOL_RESET_HEADER = "X-Ratelimit-Reset"
 
 local HeaderBasedRateLimitingHandler = BasePlugin:extend()
 
-HeaderBasedRateLimitingHandler.PRIORITY = 2000
+HeaderBasedRateLimitingHandler.PRIORITY = 901
 
 function HeaderBasedRateLimitingHandler:new()
     HeaderBasedRateLimitingHandler.super.new(self, "header-based-rate-limiting")

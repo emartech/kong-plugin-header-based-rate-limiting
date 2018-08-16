@@ -1,7 +1,7 @@
 local RateLimitKey = {}
 
-function RateLimitKey.generate(customer_identifier, config)
-    return "ratelimit:" .. customer_identifier .. ":" .. (config.service_id or "") .. ":" .. (config.route_id or "") .. ":"
+function RateLimitKey.generate(customer_identifier, config, actual_time)
+    return "ratelimit:" .. customer_identifier .. ":" .. (config.service_id or "") .. ":" .. (config.route_id or "") .. ":" .. os.date("!%Y%m%dT%H%M00Z", actual_time)
 end
 
 return RateLimitKey

@@ -50,4 +50,13 @@ describe("#generate", function()
 
         assert.has_match("ratelimit:" .. consumer_identifier .. ":service:route:", RateLimitKey.generate(consumer_identifier, plugin_config))
     end)
+
+    it("should generate a key containing the actual time with minute precision", function()
+
+        local actual_time = os.time()
+        local formatted_time = os.date("!%Y%m%dT%H%M00Z", actual_time)
+
+        assert.has_match("ratelimit::::" .. formatted_time, RateLimitKey.generate('', {}, actual_time))
+    end)
+
 end)

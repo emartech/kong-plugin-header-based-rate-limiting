@@ -26,15 +26,18 @@ function HeaderBasedRateLimitingHandler:access(conf)
     if success then
         local redis = result
         local pool = RateLimitPool(redis)
+        local actual_time = os.time()
+        local time_reset = os.date("!%Y-%m-%dT%H:%M:00Z", actual_time + 60)
 
         local rate_limit_key = RateLimitKey.generate(
-            ConsumerIdentifier.generate(conf.identification_headers, ngx.req.get_headers()),
-            conf
+        ConsumerIdentifier.generate(
+                conf.identification_headers, ngx.req.get_headers()),
+                conf,
+                actual_time
         )
 
         local request_count = pool:request_count(rate_limit_key)
 
-        local time_reset = os.date("!%Y-%m-%dT%H:%M:00Z", os.time() + 60)
 
         if not conf.log_only then
             ngx.header[RATE_LIMIT_HEADER] = conf.default_rate_limit

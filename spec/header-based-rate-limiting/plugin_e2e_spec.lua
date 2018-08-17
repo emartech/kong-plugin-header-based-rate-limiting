@@ -309,9 +309,6 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                     }
                 }))
 
-                local raw_response_body = response:read_body()
-                headers = cjson.decode(raw_response_body).headers
-
                 assert.are.equal('2', response.headers['x-ratelimit-remaining'])
                 assert.are.equal(tostring(default_rate_limit), response.headers['x-ratelimit-limit'])
                 assert.are.equal(time_reset, response.headers['x-ratelimit-reset'])
@@ -615,7 +612,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
 
                     local service_id = cjson.decode(raw_service_response_body).id
 
-                    local route_response = assert(helpers.admin_client():send({
+                    assert(helpers.admin_client():send({
                         method = "POST",
                         path = "/routes/",
                         body = {
@@ -628,10 +625,6 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                             ["Content-Type"] = "application/json"
                         }
                     }))
-
-                    local raw_route_response_body = route_response:read_body()
-
-                    local route_id = cjson.decode(raw_route_response_body).id
 
                     assert(helpers.admin_client():send({
                         method = "POST",
@@ -770,9 +763,171 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                     }))
 
                     assert.res_status(429, response)
-
                 end)
 
+            end)
+
+            context("when the plugin is appended after an authentication plugin", function()
+                it("should be able to use the headers applied by it", function()
+                    local service_response = assert(helpers.admin_client():send({
+                        method = "POST",
+                        path = "/services/",
+                        body = {
+                            name = 'secure-service',
+                            url = 'http://mockbin:8080/request'
+                        },
+                        headers = {
+                            ["Content-Type"] = "application/json"
+                        }
+                    }))
+
+                    local raw_service_response_body = service_response:read_body()
+
+                    local service_id = cjson.decode(raw_service_response_body).id
+
+                    assert(helpers.admin_client():send({
+                        method = "POST",
+                        path = "/services/" .. service_id .. "/plugins",
+                        body = {
+                            name = 'key-auth'
+                        },
+                        headers = {
+                            ["Content-Type"] = "application/json"
+                        }
+                    }))
+
+                    local consumer_response = assert(helpers.admin_client():send({
+                        method = "POST",
+                        path = "/consumers",
+                        body = {
+                            username = 'authenticated_consumer'
+                        },
+                        headers = {
+                            ["Content-Type"] = "application/json"
+                        }
+                    }))
+
+                    local raw_consumer_response_body = consumer_response:read_body()
+
+                    local consumer_id = cjson.decode(raw_consumer_response_body).id
+
+                    local key_response = assert(helpers.admin_client():send({
+                        method = "POST",
+                        path = "/consumers/" .. consumer_id .. "/key-auth",
+                        body = {},
+                        headers = {
+                            ["Content-Type"] = "application/json"
+                        }
+                    }))
+
+                    local raw_key_response_body = key_response:read_body()
+
+                    local key = cjson.decode(raw_key_response_body).key
+
+                    local second_consumer_response = assert(helpers.admin_client():send({
+                        method = "POST",
+                        path = "/consumers",
+                        body = {
+                            username = 'second_authenticated_consumer'
+                        },
+                        headers = {
+                            ["Content-Type"] = "application/json"
+                        }
+                    }))
+
+                    local raw_second_consumer_response_body = second_consumer_response:read_body()
+
+                    local second_consumer_id = cjson.decode(raw_second_consumer_response_body).id
+
+                    local second_key_response = assert(helpers.admin_client():send({
+                        method = "POST",
+                        path = "/consumers/" .. second_consumer_id .. "/key-auth",
+                        body = {},
+                        headers = {
+                            ["Content-Type"] = "application/json"
+                        }
+                    }))
+
+                    local raw_second_key_response_body = second_key_response:read_body()
+
+                    local second_key = cjson.decode(raw_second_key_response_body).key
+
+                    assert(helpers.admin_client():send({
+                        method = "POST",
+                        path = "/routes/",
+                        body = {
+                            service = {
+                                id = service_id
+                            },
+                            paths = { '/secure-route' }
+                        },
+                        headers = {
+                            ["Content-Type"] = "application/json"
+                        }
+                    }))
+
+                    assert(helpers.admin_client():send({
+                        method = "POST",
+                        path = "/services/" .. service_id .. "/plugins",
+                        body = {
+                            name = "header-based-rate-limiting",
+                            config = {
+                                redis = {
+                                    host = "kong-redis"
+                                },
+                                default_rate_limit = 3,
+                                identification_headers = { "X-Consumer-Username" }
+                            }
+                        },
+                        headers = {
+                            ["Content-Type"] = "application/json"
+                        }
+                    }))
+
+                    for i = 1, 3 do
+                        local response = assert(helpers.proxy_client():send({
+                            method = "GET",
+                            path = "/secure-route",
+                            headers = {
+                                apikey = key
+                            }
+                        }))
+
+                        assert.res_status(200, response)
+                    end
+
+                    local response = assert(helpers.proxy_client():send({
+                        method = "GET",
+                        path = "/secure-route",
+                        headers = {
+                            apikey = key
+                        }
+                    }))
+
+                    assert.res_status(429, response)
+
+                    for i = 1, 3 do
+                        local response = assert(helpers.proxy_client():send({
+                            method = "GET",
+                            path = "/secure-route",
+                            headers = {
+                                apikey = second_key
+                            }
+                        }))
+
+                        assert.res_status(200, response)
+                    end
+
+                    local response = assert(helpers.proxy_client():send({
+                        method = "GET",
+                        path = "/secure-route",
+                        headers = {
+                            apikey = second_key
+                        }
+                    }))
+
+                    assert.res_status(429, response)
+                end)
             end)
         end)
     end)

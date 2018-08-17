@@ -301,6 +301,22 @@ describe("Plugin: header-based-rate-limiting (access)", function()
             it("should set rate limit headers", function()
                 local time_reset = os.date("!%Y-%m-%dT%H:%M:00Z", os.time() + 60)
 
+                for i = 1, default_rate_limit do
+                    local expected_remaining = default_rate_limit - i
+                    local response = assert(helpers.proxy_client():send({
+                        method = "GET",
+                        path = "/test-route",
+                        headers = {
+                            ["X-Custom-Identifier"] = "api_consumer",
+                        }
+                    }))
+
+                    assert.res_status(200, response)
+                    assert.are.equal(tostring(expected_remaining), response.headers['x-ratelimit-remaining'])
+                    assert.are.equal(tostring(default_rate_limit), response.headers['x-ratelimit-limit'])
+                    assert.are.equal(time_reset, response.headers['x-ratelimit-reset'])
+                end
+
                 local response = assert(helpers.proxy_client():send({
                     method = "GET",
                     path = "/test-route",
@@ -309,7 +325,8 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                     }
                 }))
 
-                assert.are.equal('2', response.headers['x-ratelimit-remaining'])
+                assert.res_status(429, response)
+                assert.are.equal('0', response.headers['x-ratelimit-remaining'])
                 assert.are.equal(tostring(default_rate_limit), response.headers['x-ratelimit-limit'])
                 assert.are.equal(time_reset, response.headers['x-ratelimit-reset'])
             end)

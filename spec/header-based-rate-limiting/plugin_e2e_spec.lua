@@ -876,7 +876,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                                     host = "kong-redis"
                                 },
                                 default_rate_limit = 3,
-                                identification_headers = { "X-Consumer-Username" }
+                                identification_headers = { "x_consumer_username" }
                             }
                         },
                         headers = {

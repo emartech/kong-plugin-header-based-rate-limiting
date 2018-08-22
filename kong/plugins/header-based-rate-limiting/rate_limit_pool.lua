@@ -14,7 +14,11 @@ function RateLimitPool:increment(key)
 end
 
 function RateLimitPool:request_count(key)
-    local request_count = self.redis:get(key)
+    local request_count, err = self.redis:get(key)
+
+    if not request_count then
+        error(err)
+    end
 
     if request_count == ngx.null then
         return 0

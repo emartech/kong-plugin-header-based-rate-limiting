@@ -8,7 +8,14 @@ describe("#request_count", function()
             end
         }
 
-        local rate_limit_pool = RateLimitPool(redis)
+        local ngx = {
+            null = 'null',
+            ctx = {},
+            var = {},
+            log = function() end,
+        }
+
+        local rate_limit_pool = RateLimitPool(redis, ngx)
 
         assert.has_error(function() rate_limit_pool:request_count('some_key') end, 'error message')
     end)

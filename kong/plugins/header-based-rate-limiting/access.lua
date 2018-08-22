@@ -19,7 +19,7 @@ end
 
 function Access.execute(conf)
     local redis = RedisFactory.create(conf.redis)
-    local pool = RateLimitPool(redis)
+    local pool = RateLimitPool(redis, ngx)
     local actual_time = os.time()
     local time_reset = os.date("!%Y-%m-%dT%H:%M:00Z", actual_time + 60)
     local identifier = ConsumerIdentifier.generate(conf.identification_headers, ngx.req.get_headers())

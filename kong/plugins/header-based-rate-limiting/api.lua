@@ -1,5 +1,7 @@
 local crud = require "kong.api.crud_helpers"
 local RedisFactory = require "kong.plugins.header-based-rate-limiting.redis_factory"
+local utils = require "kong.tools.utils"
+local base64 = require "base64"
 
 return {
     ["/plugins/:plugin_id/redis-ping"] = {
@@ -23,6 +25,37 @@ return {
             local result = redis_or_error:ping()
 
             helpers.responses.send_HTTP_OK(result)
+        end
+    },
+
+    ['/header-based-rate-limits'] = {
+        POST = function(self, dao_factory, helpers)
+        end,
+
+        GET = function(self, dao_factory, helpers)
+            local function decode_header_composition(header_based_rate_limit)
+                local result = {}
+
+                for key, value in pairs(header_based_rate_limit) do
+                    if key == "header_composition" then
+                        local individual_headers = utils.split(header_based_rate_limit.header_composition, ":")
+
+                        local decoded_headers = {}
+
+                        for _, header in ipairs(individual_headers) do
+                            table.insert(decoded_headers, base64.decode(header))
+                        end
+
+                        result["header_composition"] = decoded_headers
+                    else
+                        result[key] = value
+                    end
+                end
+
+                return result
+            end
+
+            crud.paginated_set(self, dao_factory.header_based_rate_limits, decode_header_composition)
         end
     }
 }

@@ -316,6 +316,101 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                     assert.are.same(header_composition, body.header_composition)
                 end)
 
+                it("should store the provided settings when only service is provided", function()
+                    local service_response = assert(helpers.admin_client():send({
+                        method = "POST",
+                        path = "/services/",
+                        body = {
+                            name = 'test-service',
+                            url = 'http://mockbin:8080/request'
+                        },
+                        headers = {
+                            ["Content-Type"] = "application/json"
+                        }
+                    }))
+
+                    local raw_service_response_body = service_response:read_body()
+                    local service_id = cjson.decode(raw_service_response_body).id
+
+                    local header_composition = { "test-integration", "12345678" }
+
+                    local response = assert(helpers.admin_client():send({
+                        method = "POST",
+                        path = "/header-based-rate-limits",
+                        body = {
+                            service_id = service_id,
+                            header_composition = header_composition,
+                            rate_limit = 10
+                        },
+                        headers = {
+                            ["Content-Type"] = "application/json"
+                        }
+                    }))
+
+                    local raw_body = assert.res_status(201, response)
+                    local body = cjson.decode(raw_body)
+
+                    assert.truthy(body.id)
+                    assert.are.equal(service_id, body.service_id)
+                    assert.are.same(header_composition, body.header_composition)
+                end)
+
+                it("should store the provided settings when only route is provided", function()
+                    local service_response = assert(helpers.admin_client():send({
+                        method = "POST",
+                        path = "/services/",
+                        body = {
+                            name = 'test-service',
+                            url = 'http://mockbin:8080/request'
+                        },
+                        headers = {
+                            ["Content-Type"] = "application/json"
+                        }
+                    }))
+
+                    local raw_service_response_body = service_response:read_body()
+                    local service_id = cjson.decode(raw_service_response_body).id
+
+                    local route_response = assert(helpers.admin_client():send({
+                        method = "POST",
+                        path = "/routes/",
+                        body = {
+                            service = {
+                                id = service_id
+                            },
+                            paths = { '/custom-rate-limit-route' }
+                        },
+                        headers = {
+                            ["Content-Type"] = "application/json"
+                        }
+                    }))
+
+                    local raw_route_response_body = route_response:read_body()
+                    local route_id = cjson.decode(raw_route_response_body).id
+
+                    local header_composition = { "test-integration", "12345678" }
+
+                    local response = assert(helpers.admin_client():send({
+                        method = "POST",
+                        path = "/header-based-rate-limits",
+                        body = {
+                            route_id = route_id,
+                            header_composition = header_composition,
+                            rate_limit = 10
+                        },
+                        headers = {
+                            ["Content-Type"] = "application/json"
+                        }
+                    }))
+
+                    local raw_body = assert.res_status(201, response)
+                    local body = cjson.decode(raw_body)
+
+                    assert.truthy(body.id)
+                    assert.are.equal(route_id, body.route_id)
+                    assert.are.same(header_composition, body.header_composition)
+                end)
+
                 it("should fail on duplicate settings", function()
                     local service_response = assert(helpers.admin_client():send({
                         method = "POST",
@@ -462,6 +557,10 @@ describe("Plugin: header-based-rate-limiting (access)", function()
 
                         assert.are.same(2, #body.data)
                     end)
+                end)
+
+                context("with filtering", function()
+
                 end)
             end)
         end)

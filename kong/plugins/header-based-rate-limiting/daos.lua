@@ -18,7 +18,7 @@ local function check_whether_service_exists(service_id)
     if is_null_or_exists(singletons.db.services, service_id) then
         return true
     else
-        return false, "The referenced service does not exist."
+        return false, "The referenced service '" .. service_id .. "' does not exist."
     end
 end
 
@@ -26,7 +26,7 @@ local function check_whether_route_exists(route_id)
     if is_null_or_exists(singletons.db.routes, route_id) then
         return true
     else
-        return false, "The referenced route does not exist."
+        return false, "The referenced route '" .. route_id .. "' does not exist."
     end
 end
 

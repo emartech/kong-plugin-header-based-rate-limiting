@@ -31,8 +31,8 @@ test: ## Run tests
 
 dev-env: ## Creates a service (myservice) and attaches a plugin to it (header-based-rate-limiting)
 	bash -c "curl -i -X POST --url http://localhost:8001/services/ --data 'name=testapi' --data 'protocol=http' --data 'host=mockbin' --data 'path=/request'"
-	bash -c "curl -i -X POST --url http://localhost:8001/services/testapi/routes/ --data 'paths[]=/'"
-	bash -c "curl -i -X POST --url http://localhost:8001/services/testapi/plugins/ --data 'name=header-based-rate-limiting'"
+	bash -c "curl -i -X POST --url http://localhost:8001/services/testapi/routes/ --data 'paths[]=/test'"
+	bash -c "curl -i -X POST --url http://localhost:8001/services/testapi/plugins/ --data 'name=header-based-rate-limiting' --data 'config.redis.host=kong-redis', --data 'config.default_rate_limit=3' --data 'config.log_only=false' --data 'config.identification_headers=x-customer-id,x-kong-username'"
 
 ping: ## Pings kong on localhost:8000
 	bash -c "curl -i http://localhost:8000"

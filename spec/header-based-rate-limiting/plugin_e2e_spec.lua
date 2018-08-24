@@ -1347,5 +1347,133 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                 end)
             end)
         end)
+
+        it("should look for an exact header composition config", function()
+            local test_integration = "test_integration"
+            local customer_id = '123456789'
+
+            local service_response = assert(helpers.admin_client():send({
+                method = "POST",
+                path = "/services/",
+                body = {
+                    name = 'brand-new-service',
+                    url = 'http://mockbin:8080/request'
+                },
+                headers = {
+                    ["Content-Type"] = "application/json"
+                }
+            }))
+
+            local raw_service_response_body = service_response:read_body()
+            local service_id = cjson.decode(raw_service_response_body).id
+
+            local route_response = assert(helpers.admin_client():send({
+                method = "POST",
+                path = "/routes/",
+                body = {
+                    service = {
+                        id = service_id
+                    },
+                    paths = { '/super-route' }
+                },
+                headers = {
+                    ["Content-Type"] = "application/json"
+                }
+            }))
+
+            local raw_route_response_body = route_response:read_body()
+            local route_id = cjson.decode(raw_route_response_body).id
+
+            print(route_id)
+
+            local plugin_response = assert(helpers.admin_client():send({
+                method = "POST",
+                path = "/plugins",
+                body = {
+                    name = "header-based-rate-limiting",
+                    route_id =  route_id,
+                    service_id = service_id,
+                    config = {
+                        redis = {
+                            host = "kong-redis"
+                        },
+                        default_rate_limit = 5,
+                        identification_headers = { "x-integration-id", "x-customer-id" }
+                    }
+                },
+                headers = {
+                    ["Content-Type"] = "application/json"
+                }
+            }))
+
+            local raw_plugin_response_body = plugin_response:read_body()
+            local plugin_id = cjson.decode(raw_plugin_response_body).id
+
+            print(plugin_id)
+
+            local rate_limit_response = assert(helpers.admin_client():send({
+                method = "POST",
+                path = "/header-based-rate-limits",
+                body = {
+                    service_id = service_id,
+                    route_id = route_id,
+                    header_composition = { test_integration, customer_id },
+                    rate_limit = 3
+                },
+                headers = {
+                    ["Content-Type"] = "application/json"
+                }
+            }))
+
+            local raw_rate_limit_response_body = rate_limit_response:read_body()
+            local rate_limit_id = cjson.decode(raw_rate_limit_response_body).id
+
+            print(rate_limit_id)
+
+            local rate_limit_response = assert(helpers.admin_client():send({
+                method = "POST",
+                path = "/header-based-rate-limits",
+                body = {
+                    service_id = service_id,
+                    route_id = route_id,
+                    header_composition = { test_integration, customer_id },
+                    rate_limit = 3
+                },
+                headers = {
+                    ["Content-Type"] = "application/json"
+                }
+            }))
+
+            local raw_rate_limit_response_body = rate_limit_response:read_body()
+            local rate_limit_id = cjson.decode(raw_rate_limit_response_body).id
+
+            print(rate_limit_id)
+
+            for i = 1, 3 do
+                local response = assert(helpers.proxy_client():send({
+                    method = "GET",
+                    path = '/super-route',
+                    headers = {
+                        ["x-customer-id"] = customer_id,
+                        ["x-integration-id"] = test_integration
+                    }
+                }))
+
+                assert.res_status(200, response)
+            end
+
+            local response = assert(helpers.proxy_client():send({
+                method = "GET",
+                path = '/super-route',
+                headers = {
+                    ["x-customer-id"] = customer_id,
+                    ["x-integration-id"] = test_integration
+                }
+            }))
+
+            assert.res_status(429, response)
+
+        end)
+
     end)
 end)

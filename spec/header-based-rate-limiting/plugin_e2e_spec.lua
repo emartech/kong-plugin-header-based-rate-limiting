@@ -263,7 +263,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                         method = "POST",
                         path = "/services/",
                         body = {
-                            name = 'test-service',
+                            name = 'rate-limit-test-service',
                             url = 'http://mockbin:8080/request'
                         },
                         headers = {
@@ -321,7 +321,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                         method = "POST",
                         path = "/services/",
                         body = {
-                            name = 'test-service',
+                            name = 'rate-limit-test-service',
                             url = 'http://mockbin:8080/request'
                         },
                         headers = {
@@ -360,7 +360,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                         method = "POST",
                         path = "/services/",
                         body = {
-                            name = 'test-service',
+                            name = 'rate-limit-test-service',
                             url = 'http://mockbin:8080/request'
                         },
                         headers = {
@@ -416,7 +416,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                         method = "POST",
                         path = "/services/",
                         body = {
-                            name = 'test-service',
+                            name = 'rate-limit-test-service',
                             url = 'http://mockbin:8080/request'
                         },
                         headers = {
@@ -481,86 +481,143 @@ describe("Plugin: header-based-rate-limiting (access)", function()
             end)
 
             describe("GET", function()
-                context("without filtering", function()
-                    it("should return the previously created settings", function()
-                        local header_composition = { "test-integration", "12345678" }
-                        local creation_response = assert(helpers.admin_client():send({
-                            method = "POST",
-                            path = "/header-based-rate-limits",
-                            body = {
-                                header_composition = header_composition,
-                                rate_limit = 10
-                            },
-                            headers = {
-                                ["Content-Type"] = "application/json"
-                            }
-                        }))
+                it("should return the previously created settings", function()
+                    local header_composition = { "test-integration", "12345678" }
+                    local creation_response = assert(helpers.admin_client():send({
+                        method = "POST",
+                        path = "/header-based-rate-limits",
+                        body = {
+                            header_composition = header_composition,
+                            rate_limit = 10
+                        },
+                        headers = {
+                            ["Content-Type"] = "application/json"
+                        }
+                    }))
 
-                        assert.res_status(201, creation_response)
+                    assert.res_status(201, creation_response)
 
-                        local retrieval_response = assert(helpers.admin_client():send({
-                            method = "GET",
-                            path = "/header-based-rate-limits",
-                            headers = {
-                                ["Content-Type"] = "application/json"
-                            }
-                        }))
+                    local retrieval_response = assert(helpers.admin_client():send({
+                        method = "GET",
+                        path = "/header-based-rate-limits",
+                        headers = {
+                            ["Content-Type"] = "application/json"
+                        }
+                    }))
 
-                        local raw_body = assert.res_status(200, retrieval_response)
-                        local body = cjson.decode(raw_body)
+                    local raw_body = assert.res_status(200, retrieval_response)
+                    local body = cjson.decode(raw_body)
 
-                        assert.truthy(body.data[1].id)
-                        assert.are.same(header_composition, body.data[1].header_composition)
-                    end)
-
-                    it("should be able to return multiple settings", function()
-                        local creation_response
-
-                        creation_response = assert(helpers.admin_client():send({
-                            method = "POST",
-                            path = "/header-based-rate-limits",
-                            body = {
-                                header_composition = { "test-integration", "12345678" },
-                                rate_limit = 10
-                            },
-                            headers = {
-                                ["Content-Type"] = "application/json"
-                            }
-                        }))
-
-                        assert.res_status(201, creation_response)
-
-                        creation_response = assert(helpers.admin_client():send({
-                            method = "POST",
-                            path = "/header-based-rate-limits",
-                            body = {
-                                header_composition = { "another-test-integration", "12345678" },
-                                rate_limit = 10
-                            },
-                            headers = {
-                                ["Content-Type"] = "application/json"
-                            }
-                        }))
-
-                        assert.res_status(201, creation_response)
-
-                        local retrieval_response = assert(helpers.admin_client():send({
-                            method = "GET",
-                            path = "/header-based-rate-limits",
-                            headers = {
-                                ["Content-Type"] = "application/json"
-                            }
-                        }))
-
-                        local raw_body = assert.res_status(200, retrieval_response)
-                        local body = cjson.decode(raw_body)
-
-                        assert.are.same(2, #body.data)
-                    end)
+                    assert.truthy(body.data[1].id)
+                    assert.are.same(header_composition, body.data[1].header_composition)
                 end)
 
-                context("with filtering", function()
+                it("should be able to return multiple settings", function()
+                    local creation_response
 
+                    creation_response = assert(helpers.admin_client():send({
+                        method = "POST",
+                        path = "/header-based-rate-limits",
+                        body = {
+                            header_composition = { "test-integration", "12345678" },
+                            rate_limit = 10
+                        },
+                        headers = {
+                            ["Content-Type"] = "application/json"
+                        }
+                    }))
+
+                    assert.res_status(201, creation_response)
+
+                    creation_response = assert(helpers.admin_client():send({
+                        method = "POST",
+                        path = "/header-based-rate-limits",
+                        body = {
+                            header_composition = { "another-test-integration", "12345678" },
+                            rate_limit = 10
+                        },
+                        headers = {
+                            ["Content-Type"] = "application/json"
+                        }
+                    }))
+
+                    assert.res_status(201, creation_response)
+
+                    local retrieval_response = assert(helpers.admin_client():send({
+                        method = "GET",
+                        path = "/header-based-rate-limits",
+                        headers = {
+                            ["Content-Type"] = "application/json"
+                        }
+                    }))
+
+                    local raw_body = assert.res_status(200, retrieval_response)
+                    local body = cjson.decode(raw_body)
+
+                    assert.are.same(2, #body.data)
+                end)
+
+                it("should be able to return multiple settings", function()
+                    local service_response = assert(helpers.admin_client():send({
+                        method = "POST",
+                        path = "/services/",
+                        body = {
+                            name = 'rate-limit-test-service',
+                            url = 'http://mockbin:8080/request'
+                        },
+                        headers = {
+                            ["Content-Type"] = "application/json"
+                        }
+                    }))
+
+                    local raw_service_response_body = service_response:read_body()
+                    local service_id = cjson.decode(raw_service_response_body).id
+
+                    local creation_response
+
+                    creation_response = assert(helpers.admin_client():send({
+                        method = "POST",
+                        path = "/header-based-rate-limits",
+                        body = {
+                            service_id = service_id,
+                            header_composition = { "test-integration", "12345678" },
+                            rate_limit = 10
+                        },
+                        headers = {
+                            ["Content-Type"] = "application/json"
+                        }
+                    }))
+
+                    assert.res_status(201, creation_response)
+
+                    creation_response = assert(helpers.admin_client():send({
+                        method = "POST",
+                        path = "/header-based-rate-limits",
+                        body = {
+                            header_composition = { "another-test-integration", "12345678" },
+                            rate_limit = 10
+                        },
+                        headers = {
+                            ["Content-Type"] = "application/json"
+                        }
+                    }))
+
+                    assert.res_status(201, creation_response)
+
+                    local retrieval_response = assert(helpers.admin_client():send({
+                        method = "GET",
+                        path = "/header-based-rate-limits",
+                        query = { service_id = service_id },
+                        headers = {
+                            ["Content-Type"] = "application/json"
+                        }
+                    }))
+
+                    local raw_body = assert.res_status(200, retrieval_response)
+                    local body = cjson.decode(raw_body)
+
+                    assert.are.same(1, #body.data)
+                    assert.are.same(service_id, body.data[1].service_id)
                 end)
             end)
         end)

@@ -7,7 +7,7 @@ local function is_null_or_exists(entity_db, entity_id)
 
     local res, err = entity_db:select({ id = entity_id })
 
-    if not err and res and #res > 0 then
+    if not err and res then
         return true
     else
         return false

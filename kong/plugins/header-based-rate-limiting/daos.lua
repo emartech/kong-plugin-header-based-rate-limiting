@@ -7,14 +7,14 @@ local function is_null_or_exists(entity_db, entity_id)
 
     local res, err = entity_db:select({ id = entity_id })
 
-    if not err and #res > 0 then
+    if not err and res and #res > 0 then
         return true
-    elseif not err then
+    else
         return false
     end
 end
 
-local function check_whether_service_exists(service_id, header_based_rate_limit)
+local function check_whether_service_exists(service_id)
     if is_null_or_exists(singletons.db.services, service_id) then
         return true
     else
@@ -22,7 +22,7 @@ local function check_whether_service_exists(service_id, header_based_rate_limit)
     end
 end
 
-local function check_whether_route_exists(route_id, header_based_rate_limit)
+local function check_whether_route_exists(route_id)
     if is_null_or_exists(singletons.db.routes, route_id) then
         return true
     else

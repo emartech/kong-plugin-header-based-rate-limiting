@@ -1,7 +1,6 @@
 local crud = require "kong.api.crud_helpers"
 local RedisFactory = require "kong.plugins.header-based-rate-limiting.redis_factory"
 local utils = require "kong.tools.utils"
-local base64 = require "base64"
 
 local function decode_header_composition(header_based_rate_limit)
     local result = {}
@@ -13,7 +12,7 @@ local function decode_header_composition(header_based_rate_limit)
             local decoded_headers = {}
 
             for _, header in ipairs(individual_headers) do
-                table.insert(decoded_headers, base64.decode(header))
+                table.insert(decoded_headers, ngx.decode_base64(header))
             end
 
             result["header_composition"] = decoded_headers
@@ -33,7 +32,7 @@ local function encode_header_composition(header_based_rate_limit)
             local encoded_headers = {}
 
             for _, header in ipairs(value) do
-                table.insert(encoded_headers, base64.encode(header))
+                table.insert(encoded_headers, ngx.encode_base64(header))
             end
 
             result["header_composition"] = table.concat(encoded_headers, ":")

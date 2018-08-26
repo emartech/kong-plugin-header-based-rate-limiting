@@ -1,4 +1,5 @@
 local responses = require "kong.tools.responses"
+local singletons = require "kong.singletons"
 
 local RateLimitSubject = require "kong.plugins.header-based-rate-limiting.rate_limit_subject"
 local RateLimitKey = require "kong.plugins.header-based-rate-limiting.rate_limit_key"
@@ -30,7 +31,7 @@ function Access.execute(conf)
 
     local request_count = pool:request_count(rate_limit_key)
 
-    local rule = RateLimitRule(conf.default_rate_limit)
+    local rule = RateLimitRule(singletons.dao.db, conf.default_rate_limit)
     local rate_limit_value = rule:find(conf.service_id, conf.route_id, rate_limit_subject)
 
     if not conf.log_only then

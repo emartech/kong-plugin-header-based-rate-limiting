@@ -1,7 +1,5 @@
 local Object = require "classic"
 
-local singletons = require "kong.singletons"
-
 local function calculate_header_compositions_with_fallback(most_specific_composition)
     local compositions = {}
     local included_headers = {}
@@ -36,7 +34,7 @@ local function select_most_specific_rule(rules)
     return most_specific_one
 end
 
-local function find_applicable_rate_limit(service_id, route_id, entity_identifier)
+local function find_applicable_rate_limit(db, service_id, route_id, entity_identifier)
     local compositions_with_fallback = calculate_header_compositions_with_fallback(entity_identifier)
 
     local header_composition_constraint = compose_query_constraint(compositions_with_fallback)
@@ -52,7 +50,7 @@ local function find_applicable_rate_limit(service_id, route_id, entity_identifie
         header_composition_constraint
     )
 
-    local custom_rate_limits = singletons.dao.db:query(query)
+    local custom_rate_limits = db:query(query)
 
     local most_specific_rate_limit = select_most_specific_rule(custom_rate_limits)
 
@@ -61,14 +59,15 @@ end
 
 local RateLimitRule = Object:extend()
 
-function RateLimitRule:new(default_rate_limit)
+function RateLimitRule:new(db, default_rate_limit)
+    self.db = db
     self.default_rate_limit = default_rate_limit
 end
 
 function RateLimitRule:find(service_id, route_id, subject)
     local entity_identifier = subject:encoded_identifier_array()
 
-    local rate_limit_from_rules = find_applicable_rate_limit(service_id, route_id, entity_identifier)
+    local rate_limit_from_rules = find_applicable_rate_limit(self.db, service_id, route_id, entity_identifier)
 
     return rate_limit_from_rules or self.default_rate_limit
 end

@@ -1,4 +1,4 @@
-local CustomerIdentifier = {}
+local ConsumerIdentifier = {}
 
 local function header_content(header)
     if type(header) == "table" then
@@ -8,7 +8,7 @@ local function header_content(header)
     return header or ""
 end
 
-function CustomerIdentifier.generate(identifier_keys, request_headers)
+function ConsumerIdentifier.generate(identifier_keys, request_headers)
     request_headers = request_headers or {}
     local identifier_values = {}
 
@@ -19,4 +19,4 @@ function CustomerIdentifier.generate(identifier_keys, request_headers)
     return table.concat(identifier_values, ",")
 end
 
-return CustomerIdentifier
+return ConsumerIdentifier

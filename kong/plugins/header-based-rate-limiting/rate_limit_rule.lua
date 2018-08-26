@@ -2,17 +2,6 @@ local Object = require "classic"
 
 local singletons = require "kong.singletons"
 
-local function create_encoded_identifier_array(identification_headers, request_headers)
-    local composition = {}
-
-    for _, header_name in ipairs(identification_headers) do
-        local encoded_header = ngx.encode_base64(request_headers[header_name])
-        table.insert(composition, encoded_header)
-    end
-
-    return composition
-end
-
 local function calculate_header_compositions_with_fallback(most_specific_composition)
     local compositions = {}
     local included_headers = {}
@@ -72,13 +61,12 @@ end
 
 local RateLimitRule = Object:extend()
 
-function RateLimitRule:new(identification_headers, default_rate_limit)
-    self.identification_headers = identification_headers
+function RateLimitRule:new(default_rate_limit)
     self.default_rate_limit = default_rate_limit
 end
 
-function RateLimitRule:find(service_id, route_id, headers)
-    local entity_identifier = create_encoded_identifier_array(self.identification_headers, headers)
+function RateLimitRule:find(service_id, route_id, subject)
+    local entity_identifier = subject:encoded_identifier_array()
 
     local rate_limit_from_rules = find_applicable_rate_limit(service_id, route_id, entity_identifier)
 

@@ -30,8 +30,8 @@ function Access.execute(conf)
 
     local request_count = pool:request_count(rate_limit_key)
 
-    local rule = RateLimitRule(conf.identification_headers, conf.default_rate_limit)
-    local rate_limit_value = rule:find(conf.service_id, conf.route_id, ngx.req.get_headers())
+    local rule = RateLimitRule(conf.default_rate_limit)
+    local rate_limit_value = rule:find(conf.service_id, conf.route_id, rate_limit_subject)
 
     if not conf.log_only then
         ngx.header[RATE_LIMIT_HEADER] = rate_limit_value

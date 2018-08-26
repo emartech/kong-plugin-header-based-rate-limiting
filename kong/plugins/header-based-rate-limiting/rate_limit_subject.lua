@@ -31,4 +31,15 @@ function RateLimitSubject:identifier()
     return table.concat(identifier_values, ",")
 end
 
+function RateLimitSubject:encoded_identifier_array()
+    local identifiers = identifier_array(self.identification_headers, self.request_headers)
+    local encoded_identifiers = {}
+
+    for _, identifier in ipairs(identifiers) do
+        table.insert(encoded_identifiers, ngx.encode_base64(identifier))
+    end
+
+    return encoded_identifiers
+end
+
 return RateLimitSubject

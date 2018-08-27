@@ -28,7 +28,8 @@ function Access.execute(conf)
     local time_reset = os.date("!%Y-%m-%dT%H:%M:00Z", actual_time + 60)
 
     local rate_limit_subject = RateLimitSubject.from_request_headers(conf.identification_headers, ngx.req.get_headers())
-    local rate_limit_key = RateLimitKey.generate(rate_limit_subject:identifier(), conf, actual_time)
+    local rate_limit_identifier = rate_limit_subject:identifier()
+    local rate_limit_key = RateLimitKey.generate(rate_limit_identifier, conf, actual_time)
 
     local request_count = pool:request_count(rate_limit_key)
 
@@ -53,7 +54,7 @@ function Access.execute(conf)
         Logger.getInstance(ngx):logInfo({
             ["msg"] = "Rate limit exceeded",
             ["uri"] = ngx.var.request_uri,
-            ["identifier"] = identifier
+            ["identifier"] = rate_limit_identifier
         })
     else
         pool:increment(rate_limit_key)

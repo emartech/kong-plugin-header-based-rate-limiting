@@ -9,13 +9,13 @@ describe("RateLimitSubject", function()
                     ["x-unused-headr"] = "some_irrelevant_value"
                 }
 
-                local subject = RateLimitSubject({ "x-some-header" }, headers)
+                local subject = RateLimitSubject.from_request_headers({ "x-some-header" }, headers)
                 assert.are.equal("some_consumer", subject:identifier())
             end)
 
             context("when no identification header is present", function()
                 it("should return empty string", function()
-                    local subject = RateLimitSubject({ "x-some-header" }, {})
+                    local subject = RateLimitSubject.from_request_headers({ "x-some-header" }, {})
                     assert.are.equal("", subject:identifier())
                 end)
             end)
@@ -28,7 +28,7 @@ describe("RateLimitSubject", function()
                     ["x-another-header"] = "some_additional_data"
                 }
 
-                local subject = RateLimitSubject({ "x-some-header", "x-another-header" }, headers)
+                local subject = RateLimitSubject.from_request_headers({ "x-some-header", "x-another-header" }, headers)
 
                 assert.are.equal(
                     "some_consumer,some_additional_data",
@@ -43,7 +43,7 @@ describe("RateLimitSubject", function()
                         ["x-another-header"] = "some_additional_data"
                     }
 
-                    local subject = RateLimitSubject({ "x-some-header", "x-another-header", "x-yet-another-header" }, headers)
+                    local subject = RateLimitSubject.from_request_headers({ "x-some-header", "x-another-header", "x-yet-another-header" }, headers)
 
                     assert.are.equal(
                         "some_consumer,some_additional_data,",
@@ -60,7 +60,7 @@ describe("RateLimitSubject", function()
                     ["x-another-header"] = { "some_additional_data", "yet_another_additional_data" }
                 }
 
-                local subject = RateLimitSubject({ "x-some-header", "x-another-header" }, headers)
+                local subject = RateLimitSubject.from_request_headers({ "x-some-header", "x-another-header" }, headers)
 
                 assert.are.equal(
                     "some_consumer,yet_another_additional_data",
@@ -71,7 +71,7 @@ describe("RateLimitSubject", function()
 
         context("when there are no request headers", function()
             it("should return an empty string", function()
-                local subject = RateLimitSubject({ "x-some-header" }, nil)
+                local subject = RateLimitSubject.from_request_headers({ "x-some-header" }, nil)
 
                 assert.are.equal("", subject:identifier())
             end)
@@ -86,14 +86,14 @@ describe("RateLimitSubject", function()
                     ["x-unused-headr"] = "some_irrelevant_value"
                 }
 
-                local subject = RateLimitSubject({ "x-some-header" }, headers)
+                local subject = RateLimitSubject.from_request_headers({ "x-some-header" }, headers)
 
                 assert.are.same({ ngx.encode_base64("some_consumer") }, subject:encoded_identifier_array())
             end)
 
             context("when no identification header is present", function()
                 it("should return empty string", function()
-                    local subject = RateLimitSubject({ "x-some-header" }, {})
+                    local subject = RateLimitSubject.from_request_headers({ "x-some-header" }, {})
 
                     assert.are.same({ "" }, subject:encoded_identifier_array())
                 end)
@@ -107,7 +107,7 @@ describe("RateLimitSubject", function()
                     ["x-another-header"] = "some_additional_data"
                 }
 
-                local subject = RateLimitSubject({ "x-some-header", "x-another-header" }, headers)
+                local subject = RateLimitSubject.from_request_headers({ "x-some-header", "x-another-header" }, headers)
 
                 assert.are.same(
                     { ngx.encode_base64("some_consumer"), ngx.encode_base64("some_additional_data") },
@@ -122,7 +122,7 @@ describe("RateLimitSubject", function()
                         ["x-another-header"] = "some_additional_data"
                     }
 
-                    local subject = RateLimitSubject({ "x-some-header", "x-another-header", "x-yet-another-header" }, headers)
+                    local subject = RateLimitSubject.from_request_headers({ "x-some-header", "x-another-header", "x-yet-another-header" }, headers)
 
                     assert.are.same(
                         { ngx.encode_base64("some_consumer"), ngx.encode_base64("some_additional_data"), "" },
@@ -139,7 +139,7 @@ describe("RateLimitSubject", function()
                     ["x-another-header"] = { "some_additional_data", "yet_another_additional_data" }
                 }
 
-                local subject = RateLimitSubject({ "x-some-header", "x-another-header" }, headers)
+                local subject = RateLimitSubject.from_request_headers({ "x-some-header", "x-another-header" }, headers)
 
                 assert.are.same(
                     { ngx.encode_base64("some_consumer"), ngx.encode_base64("yet_another_additional_data") },
@@ -150,7 +150,7 @@ describe("RateLimitSubject", function()
 
         context("when there are no request headers", function()
             it("should return an empty string", function()
-                local subject = RateLimitSubject({ "x-some-header" }, nil)
+                local subject = RateLimitSubject.from_request_headers({ "x-some-header" }, nil)
 
                 assert.are.same({ "" }, subject:encoded_identifier_array())
             end)

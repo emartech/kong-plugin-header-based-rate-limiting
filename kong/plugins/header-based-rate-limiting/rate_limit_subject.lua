@@ -20,22 +20,27 @@ end
 
 local RateLimitSubject = Object:extend()
 
-function RateLimitSubject:new(identification_headers, request_headers)
-    self.identification_headers = identification_headers
-    self.request_headers = request_headers or {}
+function RateLimitSubject.from_request_headers(identification_headers, request_headers)
+    local identifiers = identifier_array(
+        identification_headers,
+        request_headers or {}
+    )
+
+    return RateLimitSubject(identifiers)
+end
+
+function RateLimitSubject:new(identifiers)
+    self.identifiers = identifiers
 end
 
 function RateLimitSubject:identifier()
-    local identifiers = identifier_array(self.identification_headers, self.request_headers)
-
-    return table.concat(identifiers, ",")
+    return table.concat(self.identifiers, ",")
 end
 
 function RateLimitSubject:encoded_identifier_array()
-    local identifiers = identifier_array(self.identification_headers, self.request_headers)
     local encoded_identifiers = {}
 
-    for _, identifier in ipairs(identifiers) do
+    for _, identifier in ipairs(self.identifiers) do
         table.insert(encoded_identifiers, ngx.encode_base64(identifier))
     end
 

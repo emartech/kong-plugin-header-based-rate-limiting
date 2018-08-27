@@ -1,5 +1,4 @@
 local Object = require "classic"
-local utils = require "kong.tools.utils"
 
 local function compose_query_constraint(compositions_with_fallback)
     local constraints = {}
@@ -41,28 +40,6 @@ function RateLimitModel:get(service_id, route_id, header_composition)
     local custom_rate_limits = query_custom_rate_limits(self.db, service_id, route_id, header_composition)
 
     return custom_rate_limits
-end
-
-function RateLimitModel.decode_header_composition(encoded_header_composition)
-    local individual_headers = utils.split(encoded_header_composition, ":")
-
-    local decoded_headers = {}
-
-    for _, header in ipairs(individual_headers) do
-        table.insert(decoded_headers, ngx.decode_base64(header))
-    end
-
-    return decoded_headers
-end
-
-function RateLimitModel.encode_header_composition(header_composition)
-    local encoded_headers = {}
-
-    for _, header in ipairs(header_composition) do
-        table.insert(encoded_headers, ngx.encode_base64(header))
-    end
-
-    return table.concat(encoded_headers, ":")
 end
 
 return RateLimitModel

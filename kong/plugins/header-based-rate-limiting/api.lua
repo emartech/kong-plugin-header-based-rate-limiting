@@ -1,14 +1,26 @@
 local crud = require "kong.api.crud_helpers"
+local utils = require "kong.tools.utils"
 
 local RedisFactory = require "kong.plugins.header-based-rate-limiting.redis_factory"
-local RateLimitModel = require "kong.plugins.header-based-rate-limiting.rate_limit_model"
+
+local function decode_headers(encoded_header_composition)
+    local individual_headers = utils.split(encoded_header_composition, ":")
+
+    local decoded_headers = {}
+
+    for _, header in ipairs(individual_headers) do
+        table.insert(decoded_headers, ngx.decode_base64(header))
+    end
+
+    return decoded_headers
+end
 
 local function decode_header_composition(header_based_rate_limit)
     local result = {}
 
     for key, value in pairs(header_based_rate_limit) do
         if key == "header_composition" then
-            result["header_composition"] = RateLimitModel.decode_header_composition(value)
+            result["header_composition"] = decode_headers(value)
         else
             result[key] = value
         end
@@ -17,12 +29,22 @@ local function decode_header_composition(header_based_rate_limit)
     return result
 end
 
+local function encode_headers(header_composition)
+    local encoded_headers = {}
+
+    for _, header in ipairs(header_composition) do
+        table.insert(encoded_headers, ngx.encode_base64(header))
+    end
+
+    return table.concat(encoded_headers, ":")
+end
+
 local function encode_header_composition(header_based_rate_limit)
     local result = {}
 
     for key, value in pairs(header_based_rate_limit) do
         if key == "header_composition" then
-            result["header_composition"] = RateLimitModel.encode_header_composition(value)
+            result["header_composition"] = encode_headers(value)
         else
             result[key] = value
         end

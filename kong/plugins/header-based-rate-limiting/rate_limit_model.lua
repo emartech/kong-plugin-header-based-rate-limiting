@@ -1,18 +1,18 @@
 local Object = require "classic"
 
-local function compose_query_constraint(compositions_with_fallback)
+local function compose_query_constraint(encoded_header_compositions)
     local constraints = {}
 
-    for _, composition in ipairs(compositions_with_fallback) do
+    for _, composition in ipairs(encoded_header_compositions) do
         table.insert(constraints, string.format("header_composition = '%s'", composition))
     end
 
     return table.concat(constraints, " OR ")
 end
 
-local function query_custom_rate_limits(db, service_id, route_id, header_compositions)
+local function query_custom_rate_limits(db, service_id, route_id, encoded_header_compositions)
 
-    local header_composition_constraint = compose_query_constraint(header_compositions)
+    local header_composition_constraint = compose_query_constraint(encoded_header_compositions)
 
     local query = string.format(
         [[
@@ -25,7 +25,11 @@ local function query_custom_rate_limits(db, service_id, route_id, header_composi
         header_composition_constraint
     )
 
-    local custom_rate_limits = db:query(query)
+    local custom_rate_limits, err = db:query(query)
+
+    if not custom_rate_limits then
+        error(err)
+    end
 
     return custom_rate_limits
 end
@@ -36,10 +40,13 @@ function RateLimitModel:new(db)
     self.db = db
 end
 
-function RateLimitModel:get(service_id, route_id, header_composition)
-    local custom_rate_limits = query_custom_rate_limits(self.db, service_id, route_id, header_composition)
-
-    return custom_rate_limits
+function RateLimitModel:get(service_id, route_id, encoded_header_compositions)
+    return query_custom_rate_limits(
+        self.db,
+        service_id,
+        route_id,
+        encoded_header_compositions
+    )
 end
 
 return RateLimitModel

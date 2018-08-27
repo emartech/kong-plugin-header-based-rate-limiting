@@ -36,7 +36,7 @@ local function check_unique(header_composition, header_based_rate_limit)
     local model = RateLimitModel(singletons.dao.db)
     local custom_rate_limits = model:get(header_based_rate_limit.service_id, header_based_rate_limit.route_id, { header_composition })
 
-    if #custom_rate_limits > 0 and custom_rate_limits or nil then
+    if #custom_rate_limits > 0 then
         return false, "A header based rate limit is already configured for this combination of service, route and header composition."
     else
         return true

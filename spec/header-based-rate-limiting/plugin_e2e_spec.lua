@@ -41,8 +41,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                     }
                 }))
 
-                local raw_service_response_body = service_response:read_body()
-
+                local raw_service_response_body = assert.res_status(201, service_response)
                 local service_id = cjson.decode(raw_service_response_body).id
 
                 local route_response = assert(helpers.admin_client():send({
@@ -59,8 +58,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                     }
                 }))
 
-                local raw_route_response_body = route_response:read_body()
-
+                local raw_route_response_body = assert.res_status(201, route_response)
                 local route_id = cjson.decode(raw_route_response_body).id
 
                 it("should respond with HTTP 404", function()
@@ -91,8 +89,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                         }
                     }))
 
-                    local raw_service_response_body = service_response:read_body()
-
+                    local raw_service_response_body = assert.res_status(201, service_response)
                     local service_id = cjson.decode(raw_service_response_body).id
 
                     local route_response = assert(helpers.admin_client():send({
@@ -109,8 +106,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                         }
                     }))
 
-                    local raw_route_response_body = route_response:read_body()
-
+                    local raw_route_response_body = assert.res_status(201, route_response)
                     local route_id = cjson.decode(raw_route_response_body).id
 
                     local plugin_response = assert(helpers.admin_client():send({
@@ -124,7 +120,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                         }
                     }))
 
-                    local raw_plugin_response_body = plugin_response:read_body()
+                    local raw_plugin_response_body = assert.res_status(201, plugin_response)
                     local plugin_id = cjson.decode(raw_plugin_response_body).id
 
                     local response = helpers.admin_client():send({
@@ -157,8 +153,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                         }
                     }))
 
-                    local raw_service_response_body = service_response:read_body()
-
+                    local raw_service_response_body = assert.res_status(201, service_response)
                     local service_id = cjson.decode(raw_service_response_body).id
 
                     local route_response = assert(helpers.admin_client():send({
@@ -175,8 +170,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                         }
                     }))
 
-                    local raw_route_response_body = route_response:read_body()
-
+                    local raw_route_response_body = assert.res_status(201, route_response)
                     local route_id = cjson.decode(raw_route_response_body).id
 
                     local plugin_response = assert(helpers.admin_client():send({
@@ -197,7 +191,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                         }
                     }))
 
-                    local raw_plugin_response_body = plugin_response:read_body()
+                    local raw_plugin_response_body = assert.res_status(201, plugin_response)
                     local plugin_id = cjson.decode(raw_plugin_response_body).id
 
                     local response = helpers.admin_client():send({
@@ -230,8 +224,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                         }
                     }))
 
-                    local raw_service_response_body = service_response:read_body()
-
+                    local raw_service_response_body = assert.res_status(201, service_response)
                     local service_id = cjson.decode(raw_service_response_body).id
 
                     local route_response = assert(helpers.admin_client():send({
@@ -248,8 +241,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                         }
                     }))
 
-                    local raw_route_response_body = route_response:read_body()
-
+                    local raw_route_response_body = assert.res_status(201, route_response)
                     local route_id = cjson.decode(raw_route_response_body).id
 
                     local plugin_response = assert(helpers.admin_client():send({
@@ -271,7 +263,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                         }
                     }))
 
-                    local raw_plugin_response_body = plugin_response:read_body()
+                    local raw_plugin_response_body = assert.res_status(201, plugin_response)
                     local plugin_id = cjson.decode(raw_plugin_response_body).id
 
                     local response = helpers.admin_client():send({
@@ -302,8 +294,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                     }
                 }))
 
-                local raw_service_response_body = service_response:read_body()
-
+                local raw_service_response_body = assert.res_status(201, service_response)
                 local service_id = cjson.decode(raw_service_response_body).id
 
                 local route_response = assert(helpers.admin_client():send({
@@ -320,8 +311,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                     }
                 }))
 
-                local raw_route_response_body = route_response:read_body()
-
+                local raw_route_response_body = assert.res_status(201, route_response)
                 local route_id = cjson.decode(raw_route_response_body).id
 
                 local plugin_response = assert(helpers.admin_client():send({
@@ -342,7 +332,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                     }
                 }))
 
-                local raw_plugin_response_body = plugin_response:read_body()
+                local raw_plugin_response_body = assert.res_status(201, plugin_response)
                 local plugin_id = cjson.decode(raw_plugin_response_body).id
 
                 local response = helpers.admin_client():send({
@@ -409,7 +399,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                         }
                     }))
 
-                    local raw_service_response_body = service_response:read_body()
+                    local raw_service_response_body = assert.res_status(201, service_response)
                     local service_id = cjson.decode(raw_service_response_body).id
 
                     local route_response = assert(helpers.admin_client():send({
@@ -426,7 +416,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                         }
                     }))
 
-                    local raw_route_response_body = route_response:read_body()
+                    local raw_route_response_body = assert.res_status(201, route_response)
                     local route_id = cjson.decode(raw_route_response_body).id
 
                     local header_composition = { "test-integration", "12345678" }
@@ -467,7 +457,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                         }
                     }))
 
-                    local raw_service_response_body = service_response:read_body()
+                    local raw_service_response_body = assert.res_status(201, service_response)
                     local service_id = cjson.decode(raw_service_response_body).id
 
                     local header_composition = { "test-integration", "12345678" }
@@ -506,7 +496,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                         }
                     }))
 
-                    local raw_service_response_body = service_response:read_body()
+                    local raw_service_response_body = assert.res_status(201, service_response)
                     local service_id = cjson.decode(raw_service_response_body).id
 
                     local route_response = assert(helpers.admin_client():send({
@@ -523,7 +513,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                         }
                     }))
 
-                    local raw_route_response_body = route_response:read_body()
+                    local raw_route_response_body = assert.res_status(201, route_response)
                     local route_id = cjson.decode(raw_route_response_body).id
 
                     local header_composition = { "test-integration", "12345678" }
@@ -562,7 +552,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                         }
                     }))
 
-                    local raw_service_response_body = service_response:read_body()
+                    local raw_service_response_body = assert.res_status(201, service_response)
                     local service_id = cjson.decode(raw_service_response_body).id
 
                     local route_response = assert(helpers.admin_client():send({
@@ -579,7 +569,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                         }
                     }))
 
-                    local raw_route_response_body = route_response:read_body()
+                    local raw_route_response_body = assert.res_status(201, route_response)
                     local route_id = cjson.decode(raw_route_response_body).id
 
                     local header_composition = { "test-integration", "12345678" }
@@ -651,9 +641,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                 end)
 
                 it("should be able to return multiple settings", function()
-                    local creation_response
-
-                    creation_response = assert(helpers.admin_client():send({
+                    local rate_limit_response = assert(helpers.admin_client():send({
                         method = "POST",
                         path = "/header-based-rate-limits",
                         body = {
@@ -665,9 +653,9 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                         }
                     }))
 
-                    assert.res_status(201, creation_response)
+                    assert.res_status(201, rate_limit_response)
 
-                    creation_response = assert(helpers.admin_client():send({
+                    local other_rate_limit_response = assert(helpers.admin_client():send({
                         method = "POST",
                         path = "/header-based-rate-limits",
                         body = {
@@ -679,7 +667,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                         }
                     }))
 
-                    assert.res_status(201, creation_response)
+                    assert.res_status(201, other_rate_limit_response)
 
                     local retrieval_response = assert(helpers.admin_client():send({
                         method = "GET",
@@ -708,12 +696,10 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                         }
                     }))
 
-                    local raw_service_response_body = service_response:read_body()
+                    local raw_service_response_body = assert.res_status(201, service_response)
                     local service_id = cjson.decode(raw_service_response_body).id
 
-                    local creation_response
-
-                    creation_response = assert(helpers.admin_client():send({
+                    local rate_limit_response = assert(helpers.admin_client():send({
                         method = "POST",
                         path = "/header-based-rate-limits",
                         body = {
@@ -726,9 +712,9 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                         }
                     }))
 
-                    assert.res_status(201, creation_response)
+                    assert.res_status(201, rate_limit_response)
 
-                    creation_response = assert(helpers.admin_client():send({
+                    other_rate_limit_response = assert(helpers.admin_client():send({
                         method = "POST",
                         path = "/header-based-rate-limits",
                         body = {
@@ -740,7 +726,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                         }
                     }))
 
-                    assert.res_status(201, creation_response)
+                    assert.res_status(201, other_rate_limit_response)
 
                     local retrieval_response = assert(helpers.admin_client():send({
                         method = "GET",
@@ -777,8 +763,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                     }
                 }))
 
-                local raw_service_response_body = service_response:read_body()
-
+                local raw_service_response_body = assert.res_status(201, service_response)
                 local service_id = cjson.decode(raw_service_response_body).id
 
                 local route_response = assert(helpers.admin_client():send({
@@ -795,11 +780,9 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                     }
                 }))
 
-                local raw_route_response_body = route_response:read_body()
+                assert.res_status(201, route_response)
 
-                local route_id = cjson.decode(raw_route_response_body).id
-
-                assert(helpers.admin_client():send({
+                local plugin_response = assert(helpers.admin_client():send({
                     method = "POST",
                     path = "/services/" .. service_id .. "/plugins",
                     body = {
@@ -816,6 +799,8 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                         ["Content-Type"] = "application/json"
                     }
                 }))
+
+                assert.res_status(201, plugin_response)
 
                 local response = assert(helpers.proxy_client():send({
                     method = "GET",
@@ -842,8 +827,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                     }
                 }))
 
-                local raw_service_response_body = service_response:read_body()
-
+                local raw_service_response_body = assert.res_status(201, service_response)
                 local service_id = cjson.decode(raw_service_response_body).id
 
                 local route_response = assert(helpers.admin_client():send({
@@ -860,9 +844,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                     }
                 }))
 
-                local raw_route_response_body = route_response:read_body()
-
-                local route_id = cjson.decode(raw_route_response_body).id
+                assert.res_status(201, route_response)
 
                 local plugin_response = assert(helpers.admin_client():send({
                     method = "POST",
@@ -882,8 +864,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                     }
                 }))
 
-                local raw_plugin_response_body = plugin_response:read_body()
-                local plugin_id = cjson.decode(raw_plugin_response_body).id
+                assert.res_status(201, plugin_response)
 
                 for i = 1, 3 do
                     local response = assert(helpers.proxy_client():send({
@@ -917,8 +898,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                     }
                 }))
 
-                local raw_service_response_body = service_response:read_body()
-
+                local raw_service_response_body = assert.res_status(201, service_response)
                 local service_id = cjson.decode(raw_service_response_body).id
 
                 local route_response = assert(helpers.admin_client():send({
@@ -935,9 +915,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                     }
                 }))
 
-                local raw_route_response_body = route_response:read_body()
-
-                local route_id = cjson.decode(raw_route_response_body).id
+                assert.res_status(201, route_response)
 
                 local plugin_response = assert(helpers.admin_client():send({
                     method = "POST",
@@ -957,8 +935,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                     }
                 }))
 
-                local raw_plugin_response_body = plugin_response:read_body()
-                local plugin_id = cjson.decode(raw_plugin_response_body).id
+                assert.res_status(201, plugin_response)
 
                 for i = 1, default_rate_limit do
                     local expected_remaining = default_rate_limit - i
@@ -1005,8 +982,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                         }
                     }))
 
-                    local raw_service_response_body = service_response:read_body()
-
+                    local raw_service_response_body = assert.res_status(201, service_response)
                     local service_id = cjson.decode(raw_service_response_body).id
 
                     local route_response = assert(helpers.admin_client():send({
@@ -1023,9 +999,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                         }
                     }))
 
-                    local raw_route_response_body = route_response:read_body()
-
-                    local route_id = cjson.decode(raw_route_response_body).id
+                    assert.res_status(201, route_response)
 
                     local plugin_response = assert(helpers.admin_client():send({
                         method = "POST",
@@ -1045,8 +1019,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                         }
                     }))
 
-                    local raw_plugin_response_body = plugin_response:read_body()
-                    local plugin_id = cjson.decode(raw_plugin_response_body).id
+                    assert.res_status(201, plugin_response)
 
                     for i = 1, 3 do
                         local response = assert(helpers.proxy_client():send({
@@ -1109,8 +1082,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                         }
                     }))
 
-                    local raw_service_response_body = service_response:read_body()
-
+                    local raw_service_response_body = assert.res_status(201, service_response)
                     local service_id = cjson.decode(raw_service_response_body).id
 
                     local route_response = assert(helpers.admin_client():send({
@@ -1127,9 +1099,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                         }
                     }))
 
-                    local raw_route_response_body = route_response:read_body()
-
-                    local route_id = cjson.decode(raw_route_response_body).id
+                    assert.res_status(201, route_response)
 
                     local plugin_response = assert(helpers.admin_client():send({
                         method = "POST",
@@ -1149,8 +1119,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                         }
                     }))
 
-                    local raw_plugin_response_body = plugin_response:read_body()
-                    local plugin_id = cjson.decode(raw_plugin_response_body).id
+                    assert.res_status(201, plugin_response)
 
                     local other_service_response = assert(helpers.admin_client():send({
                         method = "POST",
@@ -1164,11 +1133,10 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                         }
                     }))
 
-                    local other_raw_service_response_body = other_service_response:read_body()
-
+                    local other_raw_service_response_body = assert.res_status(201, other_service_response)
                     local other_service_id = cjson.decode(other_raw_service_response_body).id
 
-                    assert(helpers.admin_client():send({
+                    local other_route_response = assert(helpers.admin_client():send({
                         method = "POST",
                         path = "/routes/",
                         body = {
@@ -1182,7 +1150,9 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                         }
                     }))
 
-                    assert(helpers.admin_client():send({
+                    assert.res_status(201, other_route_response)
+
+                    local other_plugin_response = (helpers.admin_client():send({
                         method = "POST",
                         path = "/services/" .. other_service_id .. "/plugins",
                         body = {
@@ -1199,6 +1169,8 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                             ["Content-Type"] = "application/json"
                         }
                     }))
+
+                    assert.res_status(201, other_plugin_response)
 
                     for i = 1, 3 do
                         local response = assert(helpers.proxy_client():send({
@@ -1260,8 +1232,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                         }
                     }))
 
-                    local raw_service_response_body = service_response:read_body()
-
+                    local raw_service_response_body = assert.res_status(201, service_response)
                     local service_id = cjson.decode(raw_service_response_body).id
 
                     local first_route_response = assert(helpers.admin_client():send({
@@ -1278,11 +1249,10 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                         }
                     }))
 
-                    local raw_first_route_response_body = first_route_response:read_body()
-
+                    local raw_first_route_response_body = assert.res_status(201, first_route_response)
                     local first_route_id = cjson.decode(raw_first_route_response_body).id
 
-                    assert(helpers.admin_client():send({
+                    local plugin_response = assert(helpers.admin_client():send({
                         method = "POST",
                         path = "/routes/" .. first_route_id .. "/plugins",
                         body = {
@@ -1300,6 +1270,8 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                         }
                     }))
 
+                    assert.res_status(201, plugin_response)
+
                     local second_route_response = assert(helpers.admin_client():send({
                         method = "POST",
                         path = "/routes/",
@@ -1314,11 +1286,10 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                         }
                     }))
 
-                    local raw_second_route_response_body = second_route_response:read_body()
-
+                    local raw_second_route_response_body = assert.res_status(201, second_route_response)
                     local second_route_id = cjson.decode(raw_second_route_response_body).id
 
-                    assert(helpers.admin_client():send({
+                    local other_plugin_response = assert(helpers.admin_client():send({
                         method = "POST",
                         path = "/routes/" .. second_route_id .. "/plugins",
                         body = {
@@ -1335,6 +1306,8 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                             ["Content-Type"] = "application/json"
                         }
                     }))
+
+                    assert.res_status(201, other_plugin_response)
 
                     for i = 1, 3 do
                         local response = assert(helpers.proxy_client():send({
@@ -1396,11 +1369,10 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                         }
                     }))
 
-                    local raw_service_response_body = service_response:read_body()
-
+                    local raw_service_response_body = assert.res_status(201, service_response)
                     local service_id = cjson.decode(raw_service_response_body).id
 
-                    assert(helpers.admin_client():send({
+                    local route_response = assert(helpers.admin_client():send({
                         method = "POST",
                         path = "/routes/",
                         body = {
@@ -1414,7 +1386,9 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                         }
                     }))
 
-                    assert(helpers.admin_client():send({
+                    assert.res_status(201, route_response)
+
+                    local plugin_response = assert(helpers.admin_client():send({
                         method = "POST",
                         path = "/services/" .. service_id .. "/plugins",
                         body = {
@@ -1432,6 +1406,8 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                             ["Content-Type"] = "application/json"
                         }
                     }))
+
+                    assert.res_status(201, plugin_response)
 
                     for i = 1, 5 do
                         local response = assert(helpers.proxy_client():send({
@@ -1466,8 +1442,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                         }
                     }))
 
-                    local raw_service_response_body = service_response:read_body()
-
+                    local raw_service_response_body = assert.res_status(201, service_response)
                     local service_id = cjson.decode(raw_service_response_body).id
 
                     local route_response = assert(helpers.admin_client():send({
@@ -1484,11 +1459,10 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                         }
                     }))
 
-                    local route_response_body = route_response:read_body()
-
+                    local route_response_body = assert.res_status(201, route_response)
                     local route_id = cjson.decode(route_response_body).id
 
-                    assert(helpers.admin_client():send({
+                    local plugin_response = assert(helpers.admin_client():send({
                         method = "POST",
                         path = "/routes/" .. route_id .. "/plugins",
                         body = {
@@ -1505,6 +1479,8 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                             ["Content-Type"] = "application/json"
                         }
                     }))
+
+                    assert.res_status(201, plugin_response)
 
                     for i = 1, 3 do
                         local response = assert(helpers.proxy_client():send({
@@ -1569,11 +1545,10 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                         }
                     }))
 
-                    local raw_service_response_body = service_response:read_body()
-
+                    local raw_service_response_body = assert.res_status(201, service_response)
                     local service_id = cjson.decode(raw_service_response_body).id
 
-                    assert(helpers.admin_client():send({
+                    local plugin_response = assert(helpers.admin_client():send({
                         method = "POST",
                         path = "/services/" .. service_id .. "/plugins",
                         body = {
@@ -1583,6 +1558,8 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                             ["Content-Type"] = "application/json"
                         }
                     }))
+
+                    assert.res_status(201, plugin_response)
 
                     local consumer_response = assert(helpers.admin_client():send({
                         method = "POST",
@@ -1595,8 +1572,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                         }
                     }))
 
-                    local raw_consumer_response_body = consumer_response:read_body()
-
+                    local raw_consumer_response_body = assert.res_status(201, consumer_response)
                     local consumer_id = cjson.decode(raw_consumer_response_body).id
 
                     local key_response = assert(helpers.admin_client():send({
@@ -1608,7 +1584,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                         }
                     }))
 
-                    local raw_key_response_body = key_response:read_body()
+                    local raw_key_response_body = assert.res_status(201, key_response)
 
                     local key = cjson.decode(raw_key_response_body).key
 
@@ -1623,8 +1599,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                         }
                     }))
 
-                    local raw_second_consumer_response_body = second_consumer_response:read_body()
-
+                    local raw_second_consumer_response_body = assert.res_status(201, second_consumer_response)
                     local second_consumer_id = cjson.decode(raw_second_consumer_response_body).id
 
                     local second_key_response = assert(helpers.admin_client():send({
@@ -1636,11 +1611,10 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                         }
                     }))
 
-                    local raw_second_key_response_body = second_key_response:read_body()
-
+                    local raw_second_key_response_body = assert.res_status(201, second_key_response)
                     local second_key = cjson.decode(raw_second_key_response_body).key
 
-                    assert(helpers.admin_client():send({
+                    local route_response = assert(helpers.admin_client():send({
                         method = "POST",
                         path = "/routes/",
                         body = {
@@ -1654,7 +1628,9 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                         }
                     }))
 
-                    assert(helpers.admin_client():send({
+                    assert.res_status(201, route_response)
+
+                    local plugin_response = assert(helpers.admin_client():send({
                         method = "POST",
                         path = "/services/" .. service_id .. "/plugins",
                         body = {
@@ -1671,6 +1647,8 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                             ["Content-Type"] = "application/json"
                         }
                     }))
+
+                    assert.res_status(201, plugin_response)
 
                     for i = 1, 3 do
                         local response = assert(helpers.proxy_client():send({
@@ -1735,7 +1713,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                 }
             }))
 
-            local raw_service_response_body = service_response:read_body()
+            local raw_service_response_body = assert.res_status(201, service_response)
             local service_id = cjson.decode(raw_service_response_body).id
 
             local route_response = assert(helpers.admin_client():send({
@@ -1752,7 +1730,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                 }
             }))
 
-            local raw_route_response_body = route_response:read_body()
+            local raw_route_response_body = assert.res_status(201, route_response)
             local route_id = cjson.decode(raw_route_response_body).id
 
             local plugin_response = assert(helpers.admin_client():send({
@@ -1775,10 +1753,9 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                 }
             }))
 
-            local raw_plugin_response_body = plugin_response:read_body()
-            local plugin_id = cjson.decode(raw_plugin_response_body).id
+            assert.res_status(201, plugin_response)
 
-            assert(helpers.admin_client():send({
+            local rate_limit_response = assert(helpers.admin_client():send({
                 method = "POST",
                 path = "/header-based-rate-limits",
                 body = {
@@ -1792,7 +1769,9 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                 }
             }))
 
-            assert(helpers.admin_client():send({
+            assert.res_status(201, rate_limit_response)
+
+            local other_rate_limit_response = assert(helpers.admin_client():send({
                 method = "POST",
                 path = "/header-based-rate-limits",
                 body = {
@@ -1804,6 +1783,8 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                     ["Content-Type"] = "application/json"
                 }
             }))
+
+            assert.res_status(201, other_rate_limit_response)
 
             for i = 1, 3 do
                 local response = assert(helpers.proxy_client():send({
@@ -1847,7 +1828,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                 }
             }))
 
-            local raw_service_response_body = service_response:read_body()
+            local raw_service_response_body = assert.res_status(201, service_response)
             local service_id = cjson.decode(raw_service_response_body).id
 
             local route_response = assert(helpers.admin_client():send({
@@ -1864,10 +1845,10 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                 }
             }))
 
-            local raw_route_response_body = route_response:read_body()
+            local raw_route_response_body = assert.res_status(201, route_response)
             local route_id = cjson.decode(raw_route_response_body).id
 
-            assert(helpers.admin_client():send({
+            local rate_limit_response = (helpers.admin_client():send({
                 method = "POST",
                 path = "/header-based-rate-limits",
                 body = {
@@ -1880,6 +1861,8 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                     ["Content-Type"] = "application/json"
                 }
             }))
+
+            assert.res_status(201, rate_limit_response)
 
             local less_specific_setting_response = assert(helpers.admin_client():send({
                 method = "POST",
@@ -1915,7 +1898,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                 }
             }))
 
-            local raw_service_response_body = service_response:read_body()
+            local raw_service_response_body = assert.res_status(201, service_response)
             local service_id = cjson.decode(raw_service_response_body).id
 
             local route_response = assert(helpers.admin_client():send({
@@ -1932,7 +1915,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                 }
             }))
 
-            local raw_route_response_body = route_response:read_body()
+            local raw_route_response_body = assert.res_status(201, route_response)
             local route_id = cjson.decode(raw_route_response_body).id
 
             local plugin_response = assert(helpers.admin_client():send({
@@ -1955,7 +1938,9 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                 }
             }))
 
-            assert(helpers.admin_client():send({
+            assert.res_status(201, plugin_response)
+
+            local rate_limit_response = assert(helpers.admin_client():send({
                 method = "POST",
                 path = "/header-based-rate-limits",
                 body = {
@@ -1969,7 +1954,9 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                 }
             }))
 
-            assert(helpers.admin_client():send({
+            assert.res_status(201, rate_limit_response)
+
+            local other_rate_limit_response = assert(helpers.admin_client():send({
                 method = "POST",
                 path = "/header-based-rate-limits",
                 body = {
@@ -1981,6 +1968,8 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                     ["Content-Type"] = "application/json"
                 }
             }))
+
+            assert.res_status(201, other_rate_limit_response)
 
             for i = 1, 3 do
                 local response = assert(helpers.proxy_client():send({

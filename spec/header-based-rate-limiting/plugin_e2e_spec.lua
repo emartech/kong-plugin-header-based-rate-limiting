@@ -18,52 +18,51 @@ describe("Plugin: header-based-rate-limiting (access)", function()
         helpers.stop_kong(nil)
     end)
 
-    local service_id, route_id
-
     before_each(function()
         helpers.dao:truncate_tables()
 
         redis:flushall()
-
-        local service_response = assert(helpers.admin_client():send({
-            method = "POST",
-            path = "/services/",
-            body = {
-                name = 'test-service',
-                url = 'http://mockbin:8080/request'
-            },
-            headers = {
-                ["Content-Type"] = "application/json"
-            }
-        }))
-
-        local raw_service_response_body = service_response:read_body()
-
-        service_id = cjson.decode(raw_service_response_body).id
-
-        local route_response = assert(helpers.admin_client():send({
-            method = "POST",
-            path = "/routes/",
-            body = {
-                service = {
-                    id = service_id
-                },
-                paths = { '/test-route' }
-            },
-            headers = {
-                ["Content-Type"] = "application/json"
-            }
-        }))
-
-        local raw_route_response_body = route_response:read_body()
-
-        route_id = cjson.decode(raw_route_response_body).id
     end)
 
     describe("admin API", function()
         describe("/plugins/:plugin_id/redis-ping", function()
 
             context("when plugin does not exist", function()
+
+                local service_response = assert(helpers.admin_client():send({
+                    method = "POST",
+                    path = "/services/",
+                    body = {
+                        name = 'test-service',
+                        url = 'http://mockbin:8080/request'
+                    },
+                    headers = {
+                        ["Content-Type"] = "application/json"
+                    }
+                }))
+
+                local raw_service_response_body = service_response:read_body()
+
+                local service_id = cjson.decode(raw_service_response_body).id
+
+                local route_response = assert(helpers.admin_client():send({
+                    method = "POST",
+                    path = "/routes/",
+                    body = {
+                        service = {
+                            id = service_id
+                        },
+                        paths = { '/test-route' }
+                    },
+                    headers = {
+                        ["Content-Type"] = "application/json"
+                    }
+                }))
+
+                local raw_route_response_body = route_response:read_body()
+
+                local route_id = cjson.decode(raw_route_response_body).id
+
                 it("should respond with HTTP 404", function()
                     local response = helpers.admin_client():send({
                         method = "GET",
@@ -79,6 +78,41 @@ describe("Plugin: header-based-rate-limiting (access)", function()
 
             context("when the plugin is not a header-based-rate-limiting", function()
                 it("should respond with HTTP 400", function()
+
+                    local service_response = assert(helpers.admin_client():send({
+                        method = "POST",
+                        path = "/services/",
+                        body = {
+                            name = 'test-service',
+                            url = 'http://mockbin:8080/request'
+                        },
+                        headers = {
+                            ["Content-Type"] = "application/json"
+                        }
+                    }))
+
+                    local raw_service_response_body = service_response:read_body()
+
+                    local service_id = cjson.decode(raw_service_response_body).id
+
+                    local route_response = assert(helpers.admin_client():send({
+                        method = "POST",
+                        path = "/routes/",
+                        body = {
+                            service = {
+                                id = service_id
+                            },
+                            paths = { '/test-route' }
+                        },
+                        headers = {
+                            ["Content-Type"] = "application/json"
+                        }
+                    }))
+
+                    local raw_route_response_body = route_response:read_body()
+
+                    local route_id = cjson.decode(raw_route_response_body).id
+
                     local plugin_response = assert(helpers.admin_client():send({
                         method = "POST",
                         path = "/services/" .. service_id .. "/plugins",
@@ -110,6 +144,41 @@ describe("Plugin: header-based-rate-limiting (access)", function()
 
             context("when Redis connection fails", function()
                 it("should respond with HTTP 400", function()
+
+                    local service_response = assert(helpers.admin_client():send({
+                        method = "POST",
+                        path = "/services/",
+                        body = {
+                            name = 'test-service',
+                            url = 'http://mockbin:8080/request'
+                        },
+                        headers = {
+                            ["Content-Type"] = "application/json"
+                        }
+                    }))
+
+                    local raw_service_response_body = service_response:read_body()
+
+                    local service_id = cjson.decode(raw_service_response_body).id
+
+                    local route_response = assert(helpers.admin_client():send({
+                        method = "POST",
+                        path = "/routes/",
+                        body = {
+                            service = {
+                                id = service_id
+                            },
+                            paths = { '/test-route' }
+                        },
+                        headers = {
+                            ["Content-Type"] = "application/json"
+                        }
+                    }))
+
+                    local raw_route_response_body = route_response:read_body()
+
+                    local route_id = cjson.decode(raw_route_response_body).id
+
                     local plugin_response = assert(helpers.admin_client():send({
                         method = "POST",
                         path = "/services/" .. service_id .. "/plugins",
@@ -148,6 +217,41 @@ describe("Plugin: header-based-rate-limiting (access)", function()
 
             context("when selecting the DB fails", function()
                 it("should respond with HTTP 400", function()
+
+                    local service_response = assert(helpers.admin_client():send({
+                        method = "POST",
+                        path = "/services/",
+                        body = {
+                            name = 'test-service',
+                            url = 'http://mockbin:8080/request'
+                        },
+                        headers = {
+                            ["Content-Type"] = "application/json"
+                        }
+                    }))
+
+                    local raw_service_response_body = service_response:read_body()
+
+                    local service_id = cjson.decode(raw_service_response_body).id
+
+                    local route_response = assert(helpers.admin_client():send({
+                        method = "POST",
+                        path = "/routes/",
+                        body = {
+                            service = {
+                                id = service_id
+                            },
+                            paths = { '/test-route' }
+                        },
+                        headers = {
+                            ["Content-Type"] = "application/json"
+                        }
+                    }))
+
+                    local raw_route_response_body = route_response:read_body()
+
+                    local route_id = cjson.decode(raw_route_response_body).id
+
                     local plugin_response = assert(helpers.admin_client():send({
                         method = "POST",
                         path = "/services/" .. service_id .. "/plugins",
@@ -186,6 +290,40 @@ describe("Plugin: header-based-rate-limiting (access)", function()
             end)
 
             it("should respond with HTTP 200", function()
+                local service_response = assert(helpers.admin_client():send({
+                    method = "POST",
+                    path = "/services/",
+                    body = {
+                        name = 'test-service',
+                        url = 'http://mockbin:8080/request'
+                    },
+                    headers = {
+                        ["Content-Type"] = "application/json"
+                    }
+                }))
+
+                local raw_service_response_body = service_response:read_body()
+
+                local service_id = cjson.decode(raw_service_response_body).id
+
+                local route_response = assert(helpers.admin_client():send({
+                    method = "POST",
+                    path = "/routes/",
+                    body = {
+                        service = {
+                            id = service_id
+                        },
+                        paths = { '/test-route' }
+                    },
+                    headers = {
+                        ["Content-Type"] = "application/json"
+                    }
+                }))
+
+                local raw_route_response_body = route_response:read_body()
+
+                local route_id = cjson.decode(raw_route_response_body).id
+
                 local plugin_response = assert(helpers.admin_client():send({
                     method = "POST",
                     path = "/services/" .. service_id .. "/plugins",
@@ -224,7 +362,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
 
         describe("/header-based-rate-limits", function()
             describe("POST", function()
-                it("should fail when te service does not exist", function()
+                it("should fail when the service does not exist", function()
                     local response = assert(helpers.admin_client():send({
                         method = "POST",
                         path = "/header-based-rate-limits",
@@ -626,6 +764,41 @@ describe("Plugin: header-based-rate-limiting (access)", function()
     describe("Rate limiting", function()
         context("when Redis is unreachable", function()
             it("shouldn't block the request", function()
+
+                local service_response = assert(helpers.admin_client():send({
+                    method = "POST",
+                    path = "/services/",
+                    body = {
+                        name = 'test-service',
+                        url = 'http://mockbin:8080/request'
+                    },
+                    headers = {
+                        ["Content-Type"] = "application/json"
+                    }
+                }))
+
+                local raw_service_response_body = service_response:read_body()
+
+                local service_id = cjson.decode(raw_service_response_body).id
+
+                local route_response = assert(helpers.admin_client():send({
+                    method = "POST",
+                    path = "/routes/",
+                    body = {
+                        service = {
+                            id = service_id
+                        },
+                        paths = { '/test-route' }
+                    },
+                    headers = {
+                        ["Content-Type"] = "application/json"
+                    }
+                }))
+
+                local raw_route_response_body = route_response:read_body()
+
+                local route_id = cjson.decode(raw_route_response_body).id
+
                 assert(helpers.admin_client():send({
                     method = "POST",
                     path = "/services/" .. service_id .. "/plugins",
@@ -654,10 +827,43 @@ describe("Plugin: header-based-rate-limiting (access)", function()
         end)
 
         context("when Redis is configured properly", function()
-            local plugin_id
             local default_rate_limit = 3
 
-            before_each(function()
+            it("should rate limit after given amount of requests", function()
+                local service_response = assert(helpers.admin_client():send({
+                    method = "POST",
+                    path = "/services/",
+                    body = {
+                        name = 'test-service',
+                        url = 'http://mockbin:8080/request'
+                    },
+                    headers = {
+                        ["Content-Type"] = "application/json"
+                    }
+                }))
+
+                local raw_service_response_body = service_response:read_body()
+
+                local service_id = cjson.decode(raw_service_response_body).id
+
+                local route_response = assert(helpers.admin_client():send({
+                    method = "POST",
+                    path = "/routes/",
+                    body = {
+                        service = {
+                            id = service_id
+                        },
+                        paths = { '/test-route' }
+                    },
+                    headers = {
+                        ["Content-Type"] = "application/json"
+                    }
+                }))
+
+                local raw_route_response_body = route_response:read_body()
+
+                local route_id = cjson.decode(raw_route_response_body).id
+
                 local plugin_response = assert(helpers.admin_client():send({
                     method = "POST",
                     path = "/services/" .. service_id .. "/plugins",
@@ -677,10 +883,8 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                 }))
 
                 local raw_plugin_response_body = plugin_response:read_body()
-                plugin_id = cjson.decode(raw_plugin_response_body).id
-            end)
+                local plugin_id = cjson.decode(raw_plugin_response_body).id
 
-            it("should rate limit after given amount of requests", function()
                 for i = 1, 3 do
                     local response = assert(helpers.proxy_client():send({
                         method = "GET",
@@ -700,6 +904,61 @@ describe("Plugin: header-based-rate-limiting (access)", function()
 
             it("should set rate limit headers", function()
                 local time_reset = os.date("!%Y-%m-%dT%H:%M:00Z", os.time() + 60)
+
+                local service_response = assert(helpers.admin_client():send({
+                    method = "POST",
+                    path = "/services/",
+                    body = {
+                        name = 'test-service',
+                        url = 'http://mockbin:8080/request'
+                    },
+                    headers = {
+                        ["Content-Type"] = "application/json"
+                    }
+                }))
+
+                local raw_service_response_body = service_response:read_body()
+
+                local service_id = cjson.decode(raw_service_response_body).id
+
+                local route_response = assert(helpers.admin_client():send({
+                    method = "POST",
+                    path = "/routes/",
+                    body = {
+                        service = {
+                            id = service_id
+                        },
+                        paths = { '/test-route' }
+                    },
+                    headers = {
+                        ["Content-Type"] = "application/json"
+                    }
+                }))
+
+                local raw_route_response_body = route_response:read_body()
+
+                local route_id = cjson.decode(raw_route_response_body).id
+
+                local plugin_response = assert(helpers.admin_client():send({
+                    method = "POST",
+                    path = "/services/" .. service_id .. "/plugins",
+                    body = {
+                        name = "header-based-rate-limiting",
+                        config = {
+                            redis = {
+                                host = "kong-redis"
+                            },
+                            default_rate_limit = default_rate_limit,
+                            identification_headers = { "x-custom-identifier" }
+                        }
+                    },
+                    headers = {
+                        ["Content-Type"] = "application/json"
+                    }
+                }))
+
+                local raw_plugin_response_body = plugin_response:read_body()
+                local plugin_id = cjson.decode(raw_plugin_response_body).id
 
                 for i = 1, default_rate_limit do
                     local expected_remaining = default_rate_limit - i
@@ -733,6 +992,62 @@ describe("Plugin: header-based-rate-limiting (access)", function()
 
             context("when there are multiple consumers", function()
                 it("should track rate limit pools separately", function()
+
+                    local service_response = assert(helpers.admin_client():send({
+                        method = "POST",
+                        path = "/services/",
+                        body = {
+                            name = 'test-service',
+                            url = 'http://mockbin:8080/request'
+                        },
+                        headers = {
+                            ["Content-Type"] = "application/json"
+                        }
+                    }))
+
+                    local raw_service_response_body = service_response:read_body()
+
+                    local service_id = cjson.decode(raw_service_response_body).id
+
+                    local route_response = assert(helpers.admin_client():send({
+                        method = "POST",
+                        path = "/routes/",
+                        body = {
+                            service = {
+                                id = service_id
+                            },
+                            paths = { '/test-route' }
+                        },
+                        headers = {
+                            ["Content-Type"] = "application/json"
+                        }
+                    }))
+
+                    local raw_route_response_body = route_response:read_body()
+
+                    local route_id = cjson.decode(raw_route_response_body).id
+
+                    local plugin_response = assert(helpers.admin_client():send({
+                        method = "POST",
+                        path = "/services/" .. service_id .. "/plugins",
+                        body = {
+                            name = "header-based-rate-limiting",
+                            config = {
+                                redis = {
+                                    host = "kong-redis"
+                                },
+                                default_rate_limit = default_rate_limit,
+                                identification_headers = { "x-custom-identifier" }
+                            }
+                        },
+                        headers = {
+                            ["Content-Type"] = "application/json"
+                        }
+                    }))
+
+                    local raw_plugin_response_body = plugin_response:read_body()
+                    local plugin_id = cjson.decode(raw_plugin_response_body).id
+
                     for i = 1, 3 do
                         local response = assert(helpers.proxy_client():send({
                             method = "GET",
@@ -781,11 +1096,12 @@ describe("Plugin: header-based-rate-limiting (access)", function()
 
             context("when plugin is configured on multiple services", function()
                 it("should track rate limit pools separately", function()
+
                     local service_response = assert(helpers.admin_client():send({
                         method = "POST",
                         path = "/services/",
                         body = {
-                            name = 'other-test-service',
+                            name = 'test-service',
                             url = 'http://mockbin:8080/request'
                         },
                         headers = {
@@ -797,12 +1113,67 @@ describe("Plugin: header-based-rate-limiting (access)", function()
 
                     local service_id = cjson.decode(raw_service_response_body).id
 
-                    assert(helpers.admin_client():send({
+                    local route_response = assert(helpers.admin_client():send({
                         method = "POST",
                         path = "/routes/",
                         body = {
                             service = {
                                 id = service_id
+                            },
+                            paths = { '/test-route' }
+                        },
+                        headers = {
+                            ["Content-Type"] = "application/json"
+                        }
+                    }))
+
+                    local raw_route_response_body = route_response:read_body()
+
+                    local route_id = cjson.decode(raw_route_response_body).id
+
+                    local plugin_response = assert(helpers.admin_client():send({
+                        method = "POST",
+                        path = "/services/" .. service_id .. "/plugins",
+                        body = {
+                            name = "header-based-rate-limiting",
+                            config = {
+                                redis = {
+                                    host = "kong-redis"
+                                },
+                                default_rate_limit = default_rate_limit,
+                                identification_headers = { "x-custom-identifier" }
+                            }
+                        },
+                        headers = {
+                            ["Content-Type"] = "application/json"
+                        }
+                    }))
+
+                    local raw_plugin_response_body = plugin_response:read_body()
+                    local plugin_id = cjson.decode(raw_plugin_response_body).id
+
+                    local other_service_response = assert(helpers.admin_client():send({
+                        method = "POST",
+                        path = "/services/",
+                        body = {
+                            name = 'other-test-service',
+                            url = 'http://mockbin:8080/request'
+                        },
+                        headers = {
+                            ["Content-Type"] = "application/json"
+                        }
+                    }))
+
+                    local other_raw_service_response_body = other_service_response:read_body()
+
+                    local other_service_id = cjson.decode(other_raw_service_response_body).id
+
+                    assert(helpers.admin_client():send({
+                        method = "POST",
+                        path = "/routes/",
+                        body = {
+                            service = {
+                                id = other_service_id
                             },
                             paths = { '/other-test-route' }
                         },
@@ -813,7 +1184,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
 
                     assert(helpers.admin_client():send({
                         method = "POST",
-                        path = "/services/" .. service_id .. "/plugins",
+                        path = "/services/" .. other_service_id .. "/plugins",
                         body = {
                             name = "header-based-rate-limiting",
                             config = {

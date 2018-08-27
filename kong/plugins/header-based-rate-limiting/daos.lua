@@ -47,6 +47,7 @@ end
 local SCHEMA = {
     primary_key = { "id" },
     table = "header_based_rate_limits",
+    cache_key = { "service_id", "route_id", "header_composition" },
     fields = {
         id = { type = "id", dao_insert_value = true },
         service_id = { type = "id", func = check_whether_service_exists },

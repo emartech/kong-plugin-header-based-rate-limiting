@@ -12,16 +12,6 @@ local function calculate_header_compositions_with_fallback(most_specific_composi
     return compositions
 end
 
-local function compose_query_constraint(compositions_with_fallback)
-    local constraints = {}
-
-    for _, composition in ipairs(compositions_with_fallback) do
-        table.insert(constraints, string.format("header_composition = '%s'", composition))
-    end
-
-    return table.concat(constraints, " OR ")
-end
-
 local function select_most_specific_rule(rules)
     local most_specific_one
 
@@ -34,23 +24,10 @@ local function select_most_specific_rule(rules)
     return most_specific_one
 end
 
-local function find_applicable_rate_limit(db, service_id, route_id, entity_identifier)
+local function find_applicable_rate_limit(model, service_id, route_id, entity_identifier)
     local compositions_with_fallback = calculate_header_compositions_with_fallback(entity_identifier)
 
-    local header_composition_constraint = compose_query_constraint(compositions_with_fallback)
-
-    local query = string.format(
-        [[
-            SELECT *
-            FROM header_based_rate_limits
-            WHERE service_id = %s AND route_id = %s AND (%s)
-        ]],
-        (service_id and "'" .. service_id .. "'" or "NULL"),
-        (route_id and "'" .. route_id .. "'" or "NULL"),
-        header_composition_constraint
-    )
-
-    local custom_rate_limits = db:query(query)
+    local custom_rate_limits = model:get(service_id, route_id, compositions_with_fallback)
 
     local most_specific_rate_limit = select_most_specific_rule(custom_rate_limits)
 
@@ -59,15 +36,15 @@ end
 
 local RateLimitRule = Object:extend()
 
-function RateLimitRule:new(db, default_rate_limit)
-    self.db = db
+function RateLimitRule:new(model, default_rate_limit)
+    self.model = model
     self.default_rate_limit = default_rate_limit
 end
 
 function RateLimitRule:find(service_id, route_id, subject)
     local entity_identifier = subject:encoded_identifier_array()
 
-    local rate_limit_from_rules = find_applicable_rate_limit(self.db, service_id, route_id, entity_identifier)
+    local rate_limit_from_rules = find_applicable_rate_limit(self.model, service_id, route_id, entity_identifier)
 
     return rate_limit_from_rules or self.default_rate_limit
 end

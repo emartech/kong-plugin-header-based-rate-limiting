@@ -1460,6 +1460,74 @@ describe("Plugin: header-based-rate-limiting (access)", function()
 
         end)
 
+        it("should allow to set less specific rate limit setting", function()
+            local test_integration = "test_integration"
+            local customer_id = '123456789'
+
+            local service_response = assert(helpers.admin_client():send({
+                method = "POST",
+                path = "/services/",
+                body = {
+                    name = 'cool-new-service',
+                    url = 'http://mockbin:8080/request'
+                },
+                headers = {
+                    ["Content-Type"] = "application/json"
+                }
+            }))
+
+            local raw_service_response_body = service_response:read_body()
+            local service_id = cjson.decode(raw_service_response_body).id
+
+            local route_response = assert(helpers.admin_client():send({
+                method = "POST",
+                path = "/routes/",
+                body = {
+                    service = {
+                        id = service_id
+                    },
+                    paths = { '/perfect-route' }
+                },
+                headers = {
+                    ["Content-Type"] = "application/json"
+                }
+            }))
+
+            local raw_route_response_body = route_response:read_body()
+            local route_id = cjson.decode(raw_route_response_body).id
+
+            assert(helpers.admin_client():send({
+                method = "POST",
+                path = "/header-based-rate-limits",
+                body = {
+                    service_id = service_id,
+                    route_id = route_id,
+                    header_composition = { test_integration, customer_id },
+                    rate_limit = 4
+                },
+                headers = {
+                    ["Content-Type"] = "application/json"
+                }
+            }))
+
+            local less_specific_setting_response = assert(helpers.admin_client():send({
+                method = "POST",
+                path = "/header-based-rate-limits",
+                body = {
+                    service_id = service_id,
+                    header_composition = { test_integration, customer_id },
+                    rate_limit = 3
+                },
+                headers = {
+                    ["Content-Type"] = "application/json"
+                }
+            }))
+
+            assert.res_status(201, less_specific_setting_response)
+
+
+        end)
+
         it("should fallback on less specific settings based on the provided header compositions", function()
             local test_integration = "test_integration"
             local customer_id = '123456789'

@@ -1,5 +1,7 @@
 local singletons = require "kong.singletons"
 
+local RateLimitModel = require "kong.plugins.header-based-rate-limiting.rate_limit_model"
+
 local function is_null_or_exists(entity_db, entity_id)
     if not entity_id then
         return true
@@ -31,15 +33,12 @@ local function check_whether_route_exists(route_id)
 end
 
 local function check_unique(header_composition, header_based_rate_limit)
-    local res, err = singletons.dao.header_based_rate_limits:find_all({
-        service_id = header_based_rate_limit.service_id,
-        route_id = header_based_rate_limit.route_id,
-        header_composition = header_composition
-    })
+    local model = RateLimitModel(singletons.dao.db)
+    local custom_rate_limits = model:get(header_based_rate_limit.service_id, header_based_rate_limit.route_id, { header_composition })
 
-    if not err and #res > 0 then
+    if #custom_rate_limits > 0 and custom_rate_limits or nil then
         return false, "A header based rate limit is already configured for this combination of service, route and header composition."
-    elseif not err then
+    else
         return true
     end
 end

@@ -26,9 +26,9 @@ function RateLimitSubject:new(identification_headers, request_headers)
 end
 
 function RateLimitSubject:identifier()
-    local identifier_values = identifier_array(self.identification_headers, self.request_headers)
+    local identifiers = identifier_array(self.identification_headers, self.request_headers)
 
-    return table.concat(identifier_values, ",")
+    return table.concat(identifiers, ",")
 end
 
 function RateLimitSubject:encoded_identifier_array()

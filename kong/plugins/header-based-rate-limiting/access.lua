@@ -5,6 +5,7 @@ local RateLimitSubject = require "kong.plugins.header-based-rate-limiting.rate_l
 local RateLimitKey = require "kong.plugins.header-based-rate-limiting.rate_limit_key"
 local RateLimitPool = require "kong.plugins.header-based-rate-limiting.rate_limit_pool"
 local RateLimitRule = require "kong.plugins.header-based-rate-limiting.rate_limit_rule"
+local RateLimitModel = require "kong.plugins.header-based-rate-limiting.rate_limit_model"
 local RedisFactory = require "kong.plugins.header-based-rate-limiting.redis_factory"
 local Logger = require "logger"
 
@@ -31,7 +32,8 @@ function Access.execute(conf)
 
     local request_count = pool:request_count(rate_limit_key)
 
-    local rule = RateLimitRule(singletons.dao.db, conf.default_rate_limit)
+    local model = RateLimitModel(singletons.dao.db)
+    local rule = RateLimitRule(model, conf.default_rate_limit)
     local rate_limit_value = rule:find(conf.service_id, conf.route_id, rate_limit_subject)
 
     if not conf.log_only then

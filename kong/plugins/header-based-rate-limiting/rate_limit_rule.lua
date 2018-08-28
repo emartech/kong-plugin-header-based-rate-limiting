@@ -6,7 +6,7 @@ local function calculate_header_compositions_with_fallback(most_specific_composi
 
     for _, header in ipairs(most_specific_composition) do
         table.insert(included_headers, header)
-        table.insert(compositions, table.concat(included_headers, ":"))
+        table.insert(compositions, table.concat(included_headers, ","))
     end
 
     return compositions

@@ -1,5 +1,6 @@
 local cjson = require "cjson"
 local helpers = require "spec.helpers"
+local pgmoon = require "pgmoon"
 
 local RedisFactory = require "kong.plugins.header-based-rate-limiting.redis_factory"
 
@@ -20,7 +21,6 @@ describe("Plugin: header-based-rate-limiting (access)", function()
 
     before_each(function()
         helpers.dao:truncate_tables()
-
         redis:flushall()
     end)
 
@@ -2144,6 +2144,139 @@ describe("Plugin: header-based-rate-limiting (access)", function()
 
             assert.res_status(429, response)
 
+        end)
+
+        context("when DB becomes unreachable", function()
+            it("should keep the configured limit in the cache", function()
+                local test_integration = "test_integration"
+                local customer_id = '123456789'
+
+                local service_response = assert(helpers.admin_client():send({
+                    method = "POST",
+                    path = "/services/",
+                    body = {
+                        name = 'brand-new-service',
+                        url = 'http://mockbin:8080/request'
+                    },
+                    headers = {
+                        ["Content-Type"] = "application/json"
+                    }
+                }))
+
+                local raw_service_response_body = assert.res_status(201, service_response)
+                local service_id = cjson.decode(raw_service_response_body).id
+
+                local route_response = assert(helpers.admin_client():send({
+                    method = "POST",
+                    path = "/routes/",
+                    body = {
+                        service = {
+                            id = service_id
+                        },
+                        paths = { '/super-route' }
+                    },
+                    headers = {
+                        ["Content-Type"] = "application/json"
+                    }
+                }))
+
+                local raw_route_response_body = assert.res_status(201, route_response)
+                local route_id = cjson.decode(raw_route_response_body).id
+
+                local plugin_response = assert(helpers.admin_client():send({
+                    method = "POST",
+                    path = "/plugins",
+                    body = {
+                        name = "header-based-rate-limiting",
+                        route_id =  route_id,
+                        service_id = service_id,
+                        config = {
+                            redis = {
+                                host = "kong-redis"
+                            },
+                            default_rate_limit = 5,
+                            identification_headers = { "x-integration-id", "x-customer-id" }
+                        }
+                    },
+                    headers = {
+                        ["Content-Type"] = "application/json"
+                    }
+                }))
+
+                assert.res_status(201, plugin_response)
+
+                local rate_limit_response = assert(helpers.admin_client():send({
+                    method = "POST",
+                    path = "/header-based-rate-limits",
+                    body = {
+                        service_id = service_id,
+                        route_id = route_id,
+                        header_composition = { test_integration, customer_id },
+                        rate_limit = 4
+                    },
+                    headers = {
+                        ["Content-Type"] = "application/json"
+                    }
+                }))
+
+                assert.res_status(201, rate_limit_response)
+
+                local response = assert(helpers.proxy_client():send({
+                    method = "GET",
+                    path = '/super-route',
+                    headers = {
+                        ["x-customer-id"] = customer_id,
+                        ["x-integration-id"] = test_integration
+                    }
+                }))
+
+                assert.res_status(200, response)
+
+--                assert.res_status(200, os.getenv('KONG_PG_HOST'))
+--                local pg = pgmoon.new({
+--                    host = os.getenv('KONG_PG_HOST'),
+--                    port = os.getenv('KONG_PG_PORT'),
+--                    database = os.getenv('KONG_PG_DATABASE'),
+--                    user = os.getenv('KONG_PG_USER'),
+--                    password = os.getenv('KONG_PG_PASSWORD')
+--                })
+                local pg = pgmoon.new({
+                    host = 'kong-database',
+                    port = 5432,
+                    database = 'kong',
+                    user = 'kong',
+                    password = 'kong'
+                })
+
+                assert(pg:connect())
+                assert(pg:query("TRUNCATE header_based_rate_limits"))
+                assert(pg:disconnect())
+
+                for i = 1, 3 do
+                    local response = assert(helpers.proxy_client():send({
+                        method = "GET",
+                        path = '/super-route',
+                        headers = {
+                            ["x-customer-id"] = customer_id,
+                            ["x-integration-id"] = test_integration
+                        }
+                    }))
+
+                    assert.res_status(200, response)
+                end
+
+                local response = assert(helpers.proxy_client():send({
+                    method = "GET",
+                    path = '/super-route',
+                    headers = {
+                        ["x-customer-id"] = customer_id,
+                        ["x-integration-id"] = test_integration
+                    }
+                }))
+
+                assert.res_status(429, response)
+
+            end)
         end)
 
     end)

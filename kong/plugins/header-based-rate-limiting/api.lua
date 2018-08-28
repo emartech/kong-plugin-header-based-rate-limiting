@@ -4,7 +4,7 @@ local utils = require "kong.tools.utils"
 local RedisFactory = require "kong.plugins.header-based-rate-limiting.redis_factory"
 
 local function decode_headers(encoded_header_composition)
-    local individual_headers = utils.split(encoded_header_composition, ":")
+    local individual_headers = utils.split(encoded_header_composition, ",")
 
     local decoded_headers = {}
 
@@ -36,7 +36,7 @@ local function encode_headers(header_composition)
         table.insert(encoded_headers, ngx.encode_base64(header))
     end
 
-    return table.concat(encoded_headers, ":")
+    return table.concat(encoded_headers, ",")
 end
 
 local function encode_header_composition(header_based_rate_limit)

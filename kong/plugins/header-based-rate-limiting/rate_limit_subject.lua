@@ -47,4 +47,10 @@ function RateLimitSubject:encoded_identifier_array()
     return encoded_identifiers
 end
 
+function RateLimitSubject:encoded_identifier()
+    local encoded_identifiers = self:encoded_identifier_array()
+
+    return table.concat(encoded_identifiers, ",")
+end
+
 return RateLimitSubject

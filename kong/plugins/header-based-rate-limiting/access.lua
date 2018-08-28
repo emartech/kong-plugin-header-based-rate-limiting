@@ -20,6 +20,14 @@ local function calculate_remaining_request_count(previous_request_count, maximum
     return remaining_requests >= 0 and remaining_requests or 0
 end
 
+local function load_rate_limit_value(db, conf, rate_limit_subject)
+    local model = RateLimitModel(db)
+    local rule = RateLimitRule(model, conf.default_rate_limit)
+    local rate_limit_value = rule:find(conf.service_id, conf.route_id, rate_limit_subject)
+
+    return rate_limit_value
+end
+
 function Access.execute(conf)
     local redis = RedisFactory.create(conf.redis)
     local pool = RateLimitPool(redis, ngx)
@@ -33,9 +41,8 @@ function Access.execute(conf)
 
     local request_count = pool:request_count(rate_limit_key)
 
-    local model = RateLimitModel(singletons.dao.db)
-    local rule = RateLimitRule(model, conf.default_rate_limit)
-    local rate_limit_value = rule:find(conf.service_id, conf.route_id, rate_limit_subject)
+    local cache_key = singletons.dao.header_based_rate_limits:cache_key(conf.service_id, conf.route_id, rate_limit_subject:encoded_identifier())
+    local rate_limit_value = singletons.cache:get(cache_key, nil, load_rate_limit_value, singletons.dao.db, conf, rate_limit_subject)
 
     local remaining_requests = calculate_remaining_request_count(request_count, conf.default_rate_limit)
 

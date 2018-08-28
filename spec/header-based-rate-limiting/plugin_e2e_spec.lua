@@ -2232,14 +2232,6 @@ describe("Plugin: header-based-rate-limiting (access)", function()
 
                 assert.res_status(200, response)
 
---                assert.res_status(200, os.getenv('KONG_PG_HOST'))
---                local pg = pgmoon.new({
---                    host = os.getenv('KONG_PG_HOST'),
---                    port = os.getenv('KONG_PG_PORT'),
---                    database = os.getenv('KONG_PG_DATABASE'),
---                    user = os.getenv('KONG_PG_USER'),
---                    password = os.getenv('KONG_PG_PASSWORD')
---                })
                 local pg = pgmoon.new({
                     host = 'kong-database',
                     port = 5432,

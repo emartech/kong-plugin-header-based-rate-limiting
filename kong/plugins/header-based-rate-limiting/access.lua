@@ -44,7 +44,7 @@ function Access.execute(conf)
     local cache_key = singletons.dao.header_based_rate_limits:cache_key(conf.service_id, conf.route_id, rate_limit_subject:encoded_identifier())
     local rate_limit_value = singletons.cache:get(cache_key, nil, load_rate_limit_value, singletons.dao.db, conf, rate_limit_subject)
 
-    local remaining_requests = calculate_remaining_request_count(request_count, conf.default_rate_limit)
+    local remaining_requests = calculate_remaining_request_count(request_count, rate_limit_value)
 
     if not conf.log_only then
         ngx.header[RATE_LIMIT_HEADER] = rate_limit_value

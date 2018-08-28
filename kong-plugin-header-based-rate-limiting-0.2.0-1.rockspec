@@ -29,5 +29,7 @@ build = {
     ["kong.plugins.header-based-rate-limiting.rate_limit_rule"] = "kong/plugins/header-based-rate-limiting/rate_limit_rule.lua",
     ["kong.plugins.header-based-rate-limiting.rate_limit_subject"] = "kong/plugins/header-based-rate-limiting/rate_limit_subject.lua",
     ["kong.plugins.header-based-rate-limiting.redis_factory"] = "kong/plugins/header-based-rate-limiting/redis_factory.lua",
+    ["kong.plugins.header-based-rate-limiting.migrations.cassandra"] = "kong/plugins/header-based-rate-limiting/migrations/cassandra.lua",
+    ["kong.plugins.header-based-rate-limiting.migrations.postgres"] = "kong/plugins/header-based-rate-limiting/migrations/postgres.lua",
   }
 }

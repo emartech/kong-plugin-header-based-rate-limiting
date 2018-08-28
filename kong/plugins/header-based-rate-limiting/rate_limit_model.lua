@@ -18,10 +18,10 @@ local function query_custom_rate_limits(db, service_id, route_id, encoded_header
         [[
             SELECT *
             FROM header_based_rate_limits
-            WHERE service_id = %s AND route_id = %s AND (%s)
+            WHERE (%s) AND (%s) AND (%s)
         ]],
-        (service_id and "'" .. service_id .. "'" or "NULL"),
-        (route_id and "'" .. route_id .. "'" or "NULL"),
+        (service_id and "service_id = '" .. service_id .. "'" or " service_id is NULL"),
+        (route_id and "route_id = '" .. route_id .. "'" or "route_id is NULL"),
         header_composition_constraint
     )
 

@@ -86,6 +86,11 @@ return {
 
         GET = function(self, dao_factory, helpers)
             crud.paginated_set(self, dao_factory.header_based_rate_limits, decode_header_composition)
+        end,
+
+        DELETE = function(self, dao_factory, helpers)
+            dao_factory.header_based_rate_limits:truncate()
+            helpers.responses.send_HTTP_OK()
         end
-    }
+    },
 }

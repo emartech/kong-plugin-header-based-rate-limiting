@@ -12,7 +12,7 @@ The plugin enables rate limiting API requests based on a customizable compositio
 
 ```json
 {
-	"name": "header-based-rate-limiting"
+	"name": "header-based-rate-limiting",
 	"service_id": "...",
 	"route_id": "...",
 	"config": {

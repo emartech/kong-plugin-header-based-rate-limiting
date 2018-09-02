@@ -74,6 +74,7 @@ It first tries to find a rule matching the values of the identification headers.
 #### Example
 
 Identification headers:
+
 | Order | Header |
 | - | - |
 | 1 | X-Country |
@@ -83,6 +84,7 @@ Identification headers:
 | 5 | X-House |
 
 Request headers:
+
 | Header | Value |
 | - | - |
 | X-Country | Hungary |

@@ -34,7 +34,7 @@ The plugin enables rate limiting API requests based on a customizable compositio
 }
 ```
 
-| Attributes | Default | Description |
+| Attribute | Default | Description |
 |-|-|-|
 | redis.host | | address of the Redis server |
 | redis.port | 6379 | port of the Redis server |
@@ -61,6 +61,19 @@ The plugin enables rate limiting API requests based on a customizable compositio
     "rate_limit": 25
 }
 ```
+
+| Attribute | Description | |
+| - | - | - |
+| service_id | ID of ther service, the plugin is attached to | optional |
+| route_id | ID of the route, the plugin is attached to | optional |
+| header_composition | these values will be used for matching the rule to the identification headers of the request | |
+| rate_limit | the rate limit pool size to be applied | |
+
+> Although the `service_id` and `route_id` attributes are optional, if they are provided, the balonging service and route objects must be present in Kong's data store.
+
+> There may be only one rule configured for a `service_id`, `route_id` and `header_composition` combination.
+
+> Rules are bound to the service and/or route object to which the plugin is attached to. This enables separate rate limit settings for the same entity (designated by the identification headers) on different routes and/or services.
 
 ## Header composition
 

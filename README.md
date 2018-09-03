@@ -1,8 +1,8 @@
-# Header based rate limiting plugin for Kong API Gateway
+# Header-based rate limiting plugin for Kong API Gateway
 
 ## Description
 
-The plugin enables rate limiting API requests based on a customizable composition of request headers. The provided list of headers will be used to identify subjects of rate limiting, thus allowing us to define more fine-grained settings than the built-in (community edition) plugin.
+The plugin enables rate limiting of API requests based on a customizable composition of request headers. The targets of rate limiting are identified using the provided list of headers, supporting more fine-grained settings than the built-in (community edition) plugin.
 
 ## Configuration
 
@@ -36,12 +36,12 @@ The plugin enables rate limiting API requests based on a customizable compositio
 
 | Attribute | Default | Description |
 |-|-|-|
-| redis.host | | address of the Redis server |
-| redis.port | 6379 | port of the Redis server |
-| redis.db | 0 | number of the Redis database |
-| default_rate_limit | | will be applied if a more specific rule couldn't be found for the given request |
-| log_only | false | requests won't be terminated when rate limit exceeded |
-| identification_headers | | this (ordered) list of headers will be used to identify the subjects of rate limiting |
+| redis.host | | Address of the Redis server |
+| redis.port | 6379 | Port of the Redis server |
+| redis.db | 0 | Number of the Redis database |
+| default_rate_limit | | Applied if a more specific rule cannot be found for the given request |
+| log_only | false | Requests are not terminated when the rate limit is exceeded |
+| identification_headers | | Ordered list of headers that identifies the targets of rate limiting |
 
 ### Adding rate limit rules
 
@@ -64,25 +64,24 @@ The plugin enables rate limiting API requests based on a customizable compositio
 
 | Attribute | Description | |
 | - | - | - |
-| service_id | ID of ther service, the plugin is attached to | optional |
-| route_id | ID of the route, the plugin is attached to | optional |
-| header_composition | these values will be used for matching the rule to the identification headers of the request | |
-| rate_limit | the rate limit pool size to be applied | |
+| service_id | ID of the service to which the plugin is bound | Optional |
+| route_id | ID of the route to which the plugin is bound | Optional |
+| header_composition | Values for matching the rule of the request identification headers | |
+| rate_limit | Rate limit pool size to be applied | |
 
-> Although the `service_id` and `route_id` attributes are optional, if they are provided, the balonging service and route objects must be present in Kong's data store.
+> Although the `service_id` and `route_id` attributes are optional, if they are provided, the related service and route objects must be present in Kong's data store.
 
-> There may be only one rule configured for a `service_id`, `route_id` and `header_composition` combination.
+> There may be only one rule configured for a `service_id`, `route_id`, and `header_composition` combination.
 
-> Rules are bound to the service and/or route object to which the plugin is attached to. This enables separate rate limit settings for the same entity (designated by the identification headers) on different routes and/or services.
+> Rules are bound to the service and/or route object to which the plugin is attached. This enables separate rate limit settings for the same entity (designated by the identification headers) on different routes and/or services.
 
 ## Header composition
 
-Subjects of rate limiting are idenfified by a configurable composition of request headers. You may think of this as the address on a mail sent through postal services. The addressee is designated by components of its address, and each of these components make the identification a bit more specific (Country > County > City > Street > House).
+Targets of rate limiting are identified by a configurable composition of request headers. You may think of this as the address of a mail sent through postal services. The addressee is designated by the components of its address, ordered by specificity (Country > County > City > Street > House).
 
 ### Lookup procedure
 
-The plugin tries to identify the addressee of each request and determine the most specific rate limit config applicable.
-It first tries to find a rule matching the values of the identification headers. If there was no exact match, it discards the most specific element (the last one) and retries the lookup. We do this until a match is found, or there are no more elements to discard (in this case, the dafault value will be applied).
+The plugin attempts to identify the addressee of each request by determining the most specific rate limit configuration applicable. It first looks up a rule that matches the values of the identification headers. If no exact match exists, it discards the most specific element (the last one), and retries the lookup. This process is repeated until a match is found. If matching is unsuccessful and all elements are discarded, the plugin applies the default rate limit value.
 
 #### Example
 
@@ -129,7 +128,7 @@ Lookup order:
 
 `make up` / `make down` / `make restart`
 
-### Setup necessary services, routes and consumers for hands-on testing
+### Set up necessary services, routes, and consumers for manual testing
 
 `make dev-env`
 
@@ -145,11 +144,11 @@ Lookup order:
 
 `make test`
 
-#### Execute just the unit test:
+#### Execute just the unit test
 
 `make unit`
 
-#### Execute end-to-end tests:
+#### Execute end-to-end tests
 
 `make e2e`
 

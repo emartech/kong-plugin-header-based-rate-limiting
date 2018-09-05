@@ -9,7 +9,8 @@ local function decode_headers(encoded_header_composition)
     local decoded_headers = {}
 
     for _, header in ipairs(individual_headers) do
-        table.insert(decoded_headers, ngx.decode_base64(header))
+        local decoded_header = header == "*" and "*" or ngx.decode_base64(header)
+        table.insert(decoded_headers, decoded_header)
     end
 
     return decoded_headers
@@ -33,7 +34,8 @@ local function encode_headers(header_composition)
     local encoded_headers = {}
 
     for _, header in ipairs(header_composition) do
-        table.insert(encoded_headers, ngx.encode_base64(header))
+        local encoded_header = header == "*" and "*" or ngx.encode_base64(header)
+        table.insert(encoded_headers, encoded_header)
     end
 
     return table.concat(encoded_headers, ",")

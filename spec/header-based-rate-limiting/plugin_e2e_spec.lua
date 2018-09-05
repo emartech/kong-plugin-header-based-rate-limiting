@@ -601,6 +601,110 @@ describe("Plugin: header-based-rate-limiting (access)", function()
 
                     assert.res_status(400, duplicate_response)
                 end)
+
+                it("should fail when given settings contains infix wildcard", function()
+                    local service_response = assert(helpers.admin_client():send({
+                        method = "POST",
+                        path = "/services/",
+                        body = {
+                            name = 'rate-limit-test-service',
+                            url = 'http://mockbin:8080/request'
+                        },
+                        headers = {
+                            ["Content-Type"] = "application/json"
+                        }
+                    }))
+
+                    local raw_service_response_body = assert.res_status(201, service_response)
+                    local service_id = cjson.decode(raw_service_response_body).id
+
+                    local route_response = assert(helpers.admin_client():send({
+                        method = "POST",
+                        path = "/routes/",
+                        body = {
+                            service = {
+                                id = service_id
+                            },
+                            paths = { '/custom-rate-limit-route' }
+                        },
+                        headers = {
+                            ["Content-Type"] = "application/json"
+                        }
+                    }))
+
+                    local raw_route_response_body = assert.res_status(201, route_response)
+                    local route_id = cjson.decode(raw_route_response_body).id
+
+                    local header_composition = { "test-integration", "*", "12345678" }
+
+                    local response = assert(helpers.admin_client():send({
+                        method = "POST",
+                        path = "/header-based-rate-limits",
+                        body = {
+                            service_id = service_id,
+                            route_id = route_id,
+                            header_composition = header_composition,
+                            rate_limit = 10
+                        },
+                        headers = {
+                            ["Content-Type"] = "application/json"
+                        }
+                    }))
+
+                    assert.res_status(400, response)
+                end)
+
+                it("should succeed when given settings contains prefix wildcard", function()
+                    local service_response = assert(helpers.admin_client():send({
+                        method = "POST",
+                        path = "/services/",
+                        body = {
+                            name = 'rate-limit-test-service',
+                            url = 'http://mockbin:8080/request'
+                        },
+                        headers = {
+                            ["Content-Type"] = "application/json"
+                        }
+                    }))
+
+                    local raw_service_response_body = assert.res_status(201, service_response)
+                    local service_id = cjson.decode(raw_service_response_body).id
+
+                    local route_response = assert(helpers.admin_client():send({
+                        method = "POST",
+                        path = "/routes/",
+                        body = {
+                            service = {
+                                id = service_id
+                            },
+                            paths = { '/custom-rate-limit-route' }
+                        },
+                        headers = {
+                            ["Content-Type"] = "application/json"
+                        }
+                    }))
+
+                    local raw_route_response_body = assert.res_status(201, route_response)
+                    local route_id = cjson.decode(raw_route_response_body).id
+
+                    local header_composition = { "*", "*", "12345678" }
+
+                    local response = assert(helpers.admin_client():send({
+                        method = "POST",
+                        path = "/header-based-rate-limits",
+                        body = {
+                            service_id = service_id,
+                            route_id = route_id,
+                            header_composition = header_composition,
+                            rate_limit = 10
+                        },
+                        headers = {
+                            ["Content-Type"] = "application/json"
+                        }
+                    }))
+
+                    assert.res_status(201, response)
+                end)
             end)
 
             describe("GET", function()

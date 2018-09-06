@@ -58,14 +58,13 @@ local function check_infix(encoded_header_composition)
 end
 
 local function validate_header_composition(encoded_header_composition, header_based_rate_limit)
-    local valid, msg = check_infix(encoded_header_composition)
+    local valid, error_message = check_infix(encoded_header_composition)
 
     if not valid then
-        return false, msg
+        return false, error_message
     end
 
-    local is_unique, msg = check_unique(encoded_header_composition, header_based_rate_limit)
-    return is_unique, msg
+    return check_unique(encoded_header_composition, header_based_rate_limit)
 end
 
 local SCHEMA = {

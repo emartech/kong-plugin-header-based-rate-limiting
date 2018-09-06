@@ -1,16 +1,5 @@
 local Object = require "classic"
-
-local function calculate_header_compositions_with_fallback(most_specific_composition)
-    local compositions = {}
-    local included_headers = {}
-
-    for _, header in ipairs(most_specific_composition) do
-        table.insert(included_headers, header)
-        table.insert(compositions, table.concat(included_headers, ","))
-    end
-
-    return compositions
-end
+local LookupKeyGenerator = require "kong.plugins.header-based-rate-limiting.lookup_key_generator"
 
 local function select_most_specific_rule(rules)
     local most_specific_one
@@ -25,7 +14,7 @@ local function select_most_specific_rule(rules)
 end
 
 local function find_applicable_rate_limit(model, service_id, route_id, entity_identifier)
-    local compositions_with_fallback = calculate_header_compositions_with_fallback(entity_identifier)
+    local compositions_with_fallback = LookupKeyGenerator.from_list(entity_identifier)
 
     local custom_rate_limits = model:get(service_id, route_id, compositions_with_fallback)
 

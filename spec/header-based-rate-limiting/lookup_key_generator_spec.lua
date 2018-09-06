@@ -23,5 +23,19 @@ describe("LookupKeyGenerator", function()
 
             assert.is_truthy(is_composition_included('*,b', compositions_with_fallback))
         end)
+
+        it("should generate all possible matches", function()
+            local compositions_with_fallback = subject.from_list({'a', 'b', 'c'})
+
+            local all_matchers = {
+                "a",
+                "a,b",
+                "*,b",
+                "a,b,c",
+                "*,b,c",
+                "*,*,c"
+            }
+            assert.are.same(all_matchers, compositions_with_fallback)
+        end)
     end)
 end)

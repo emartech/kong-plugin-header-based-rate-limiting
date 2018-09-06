@@ -24,6 +24,7 @@ build = {
     ["kong.plugins.header-based-rate-limiting.schema"] = "kong/plugins/header-based-rate-limiting/schema.lua",
     ["kong.plugins.header-based-rate-limiting.access"] = "kong/plugins/header-based-rate-limiting/access.lua",
     ["kong.plugins.header-based-rate-limiting.lookup_key_generator"] = "kong/plugins/header-based-rate-limiting/lookup_key_generator.lua",
+    ["kong.plugins.header-based-rate-limiting.key_rank"] = "kong/plugins/header-based-rate-limiting/key_rank.lua",
     ["kong.plugins.header-based-rate-limiting.rate_limit_key"] = "kong/plugins/header-based-rate-limiting/rate_limit_key.lua",
     ["kong.plugins.header-based-rate-limiting.rate_limit_pool"] = "kong/plugins/header-based-rate-limiting/rate_limit_pool.lua",
     ["kong.plugins.header-based-rate-limiting.rate_limit_model"] = "kong/plugins/header-based-rate-limiting/rate_limit_model.lua",

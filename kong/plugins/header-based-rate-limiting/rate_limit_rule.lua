@@ -1,11 +1,13 @@
 local Object = require "classic"
+
 local LookupKeyGenerator = require "kong.plugins.header-based-rate-limiting.lookup_key_generator"
+local KeyRank = require "kong.plugins.header-based-rate-limiting.key_rank"
 
 local function select_most_specific_rule(rules)
     local most_specific_one
 
     for _, rule in ipairs(rules) do
-        if not most_specific_one or string.len(rule.header_composition) > string.len(most_specific_one) then
+        if not most_specific_one or KeyRank(rule.header_composition) > KeyRank(most_specific_one.header_composition) then
             most_specific_one = rule
         end
     end

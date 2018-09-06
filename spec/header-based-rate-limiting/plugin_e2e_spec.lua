@@ -2191,8 +2191,8 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                         redis = {
                             host = "kong-redis"
                         },
-                        default_rate_limit = 5,
-                        identification_headers = { "x-integration-id", "x-customer-id" }
+                        default_rate_limit = 1,
+                        identification_headers = { "x-First-Header", "X-Second-Header", "X-Third-Header" }
                     }
                 },
                 headers = {
@@ -2202,13 +2202,30 @@ describe("Plugin: header-based-rate-limiting (access)", function()
 
             assert.res_status(201, plugin_response)
 
-            local other_rate_limit_response = assert(helpers.admin_client():send({
+            local rate_limit_response = assert(helpers.admin_client():send({
                 method = "POST",
                 path = "/header-based-rate-limits",
                 body = {
                     service_id = service_id,
                     route_id = route_id,
-                    header_composition = { "*", customer_id },
+                    header_composition = { "*", "BBB", "CCC" },
+                    rate_limit = 4
+                },
+                headers = {
+                    ["Content-Type"] = "application/json"
+                }
+            }))
+
+            assert.res_status(201, rate_limit_response)
+
+
+            local rate_limit_response = assert(helpers.admin_client():send({
+                method = "POST",
+                path = "/header-based-rate-limits",
+                body = {
+                    service_id = service_id,
+                    route_id = route_id,
+                    header_composition = { "*", "*", "CCC" },
                     rate_limit = 3
                 },
                 headers = {
@@ -2216,15 +2233,32 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                 }
             }))
 
-            assert.res_status(201, other_rate_limit_response)
+            assert.res_status(201, rate_limit_response)
 
-            for i = 1, 3 do
+            local rate_limit_response = assert(helpers.admin_client():send({
+                method = "POST",
+                path = "/header-based-rate-limits",
+                body = {
+                    service_id = service_id,
+                    route_id = route_id,
+                    header_composition = { "AAA", "BBB" },
+                    rate_limit = 2
+                },
+                headers = {
+                    ["Content-Type"] = "application/json"
+                }
+            }))
+
+            assert.res_status(201, rate_limit_response)
+
+            for i = 1, 4 do
                 local response = assert(helpers.proxy_client():send({
                     method = "GET",
                     path = '/super-route',
                     headers = {
-                        ["x-customer-id"] = customer_id,
-                        ["x-integration-id"] = test_integration
+                        ["X-First-Header"] = "AAA",
+                        ["X-Second-Header"] = "BBB",
+                        ["X-Third-Header"] = "CCC",
                     }
                 }))
 
@@ -2235,8 +2269,9 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                 method = "GET",
                 path = '/super-route',
                 headers = {
-                    ["x-customer-id"] = customer_id,
-                    ["x-integration-id"] = test_integration
+                    ["X-First-Header"] = "AAA",
+                    ["X-Second-Header"] = "BBB",
+                    ["X-Third-Header"] = "CCC",
                 }
             }))
 

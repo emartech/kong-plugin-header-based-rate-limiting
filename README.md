@@ -107,14 +107,24 @@ Request headers:
 
 Lookup order:
 
-| Order | Header composition |
-| - | - |
-| 1 | Hungary, Pest, Budapest, Kossuth Lajos, 7 |
-| 2 | Hungary, Pest, Budapest, Kossuth Lajos |
-| 3 | Hungary, Pest, Budapest |
-| 4 | Hungary, Pest |
-| 5 | Hungary |
-| 6 | default rate limit |
+| Order | X-Country | X-County | X-City | X-Street | X-House |
+| - | - | - | - | - | - |
+| 1 | Hungary | Pest | Budapest | Kossuth Lajos | 7 |
+| 2 | * | Pest | Budapest | Kossuth Lajos | 7 |
+| 3 | * | * | Budapest | Kossuth Lajos | 7 |
+| 4 | * | * | * | Kossuth Lajos | 7 |
+| 5 | * | * | * | * | 7 |
+| 6 | Hungary | Pest | Budapest | Kossuth Lajos | |
+| 7 | * | Pest | Budapest | Kossuth Lajos | |
+| 8 | * | * | Budapest | Kossuth Lajos | |
+| 9 | * | * | * | Kossuth Lajos | |
+| 10 | Hungary | Pest | Budapest | | |
+| 11 | * | Pest | Budapest | | |
+| 12 | * | * | Budapest | | |
+| 13 | Hungary | Pest | | | |
+| 14 | * | Pest | | | |
+| 15 | Hungary | | | | |
+| 16 | default rate limit | | | | |
 
 ## Development environment
 

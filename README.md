@@ -83,7 +83,7 @@ Targets of rate limiting are identified by a configurable composition of request
 
 The plugin attempts to identify the addressee of each request by determining the most specific rate limit configuration applicable. It first looks for a rule that matches the values of the identification headers. In case no exact match was found, it looks for a rule with the longest possible suffix match. If nothing was found, it discards the most specific element (the last one), and retries the lookup. This process is repeated until a match is found. If matching is unsuccessful and all elements were discarded, the plugin applies the default rate limit value.
 
-> As a rule of thumb, a longer rule is considered more specific than a shorter one. If two rules are equally long, then the one with the longest suffix specified is considered to me more specific. (e.g.: *, *, X, Y is more specific than *, *, X and *, *, X, Y is more specific than *, *, *, Y)
+> As a rule of thumb, a longer rule is considered more specific than a shorter one. If two rules are equally long, then the one with less wildcards is considered to me more specific. (e.g.: *, *, X, Y is more specific than *, *, X and *, *, X, Y is more specific than *, *, *, Y)
 
 #### Example
 

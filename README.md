@@ -126,7 +126,8 @@ Lookup order:
 | 13 | Hungary | Pest | | | |
 | 14 | * | Pest | | | |
 | 15 | Hungary | | | | |
-| 16 | default rate limit | | | | |
+
+If no match was found (using the matchers above), the default pool size will be used.
 
 ## Development environment
 

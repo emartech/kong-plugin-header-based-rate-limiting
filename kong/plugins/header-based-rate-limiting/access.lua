@@ -10,8 +10,8 @@ local RedisFactory = require "kong.plugins.header-based-rate-limiting.redis_fact
 local Logger = require "logger"
 
 local RATE_LIMIT_HEADER = "X-RateLimit-Limit"
-local REMAINING_REQUESTS_HEADER = "X-Ratelimit-Remaining"
-local POOL_RESET_HEADER = "X-Ratelimit-Reset"
+local REMAINING_REQUESTS_HEADER = "X-RateLimit-Remaining"
+local POOL_RESET_HEADER = "X-RateLimit-Reset"
 
 local Access = {}
 
@@ -59,6 +59,10 @@ function Access.execute(conf)
     end
 
     if request_count >= rate_limit_value then
+        if conf.forward_headers_to_upstream then
+            ngx.req.set_header("X-RateLimit-Decision", "block")
+        end
+
         if not conf.log_only then
             responses.send(429, "Rate limit exceeded")
         end
@@ -69,6 +73,10 @@ function Access.execute(conf)
             ["identifier"] = rate_limit_identifier
         })
     else
+        if conf.forward_headers_to_upstream then
+            ngx.req.set_header("X-RateLimit-Decision", "allow")
+        end
+
         pool:increment(rate_limit_key)
     end
 end

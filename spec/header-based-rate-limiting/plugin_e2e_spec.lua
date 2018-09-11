@@ -1949,6 +1949,99 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                 assert.are.equal(tostring(expected_remaining), response_body.headers['x-ratelimit-remaining'])
                 assert.are.equal(tostring(rate_limit), response_body.headers['x-ratelimit-limit'])
                 assert.are.equal(time_reset, response_body.headers['x-ratelimit-reset'])
+                assert.are.equal('allow', response_body.headers['x-ratelimit-decision'])
+            end)
+
+            it("should append rate limit headers to the request", function()
+                local default_rate_limit = 5
+                local rate_limit = 4
+                local expected_remaining = rate_limit - 1
+                local time_reset = os.date("!%Y-%m-%dT%H:%M:00Z", os.time() + 60)
+                local customer_id = 123456789
+
+                local service_response = assert(helpers.admin_client():send({
+                    method = "POST",
+                    path = "/services/",
+                    body = {
+                        name = 'test-service',
+                        url = 'http://mockbin:8080/request'
+                    },
+                    headers = {
+                        ["Content-Type"] = "application/json"
+                    }
+                }))
+
+                local raw_service_response_body = assert.res_status(201, service_response)
+                local service_id = cjson.decode(raw_service_response_body).id
+
+                local route_response = assert(helpers.admin_client():send({
+                    method = "POST",
+                    path = "/services/" .. service_id .. "/routes/",
+                    body = {
+                        paths = { '/test-route' }
+                    },
+                    headers = {
+                        ["Content-Type"] = "application/json"
+                    }
+                }))
+
+                local raw_route_response_body = assert.res_status(201, route_response)
+                local route_id = cjson.decode(raw_route_response_body).id
+
+                local plugin_response = assert(helpers.admin_client():send({
+                    method = "POST",
+                    path = "/plugins",
+                    body = {
+                        name = "header-based-rate-limiting",
+                        service_id = service_id,
+                        route_id = route_id,
+                        config = {
+                            redis = {
+                                host = "kong-redis"
+                            },
+                            default_rate_limit = default_rate_limit,
+                            identification_headers = { "x-customer-id" },
+                            forward_headers_to_upstream = true
+                        }
+                    },
+                    headers = {
+                        ["Content-Type"] = "application/json"
+                    }
+                }))
+
+                assert.res_status(201, plugin_response)
+
+                local rate_limit_response = (helpers.admin_client():send({
+                    method = "POST",
+                    path = "/header-based-rate-limits",
+                    body = {
+                        service_id = service_id,
+                        route_id = route_id,
+                        header_composition = { customer_id },
+                        rate_limit = rate_limit
+                    },
+                    headers = {
+                        ["Content-Type"] = "application/json"
+                    }
+                }))
+
+                assert.res_status(201, rate_limit_response)
+
+                local response = assert(helpers.proxy_client():send({
+                    method = "GET",
+                    path = "/test-route",
+                    headers = {
+                        ["x-customer-id"] = customer_id,
+                    }
+                }))
+
+                local raw_response_body = assert.res_status(200, response)
+                local response_body = cjson.decode(raw_response_body)
+
+                assert.are.equal(tostring(expected_remaining), response_body.headers['x-ratelimit-remaining'])
+                assert.are.equal(tostring(rate_limit), response_body.headers['x-ratelimit-limit'])
+                assert.are.equal(time_reset, response_body.headers['x-ratelimit-reset'])
+                assert.are.equal('allow', response_body.headers['x-ratelimit-decision'])
             end)
 
         end)

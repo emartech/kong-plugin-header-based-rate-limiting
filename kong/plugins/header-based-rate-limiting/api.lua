@@ -71,7 +71,7 @@ return {
             local success, redis_or_error = pcall(RedisFactory.create, self.plugin.config.redis)
 
             if not success then
-                return helpers.responses.send_HTTP_BAD_REQUEST(redis_or_error.message)
+                return helpers.responses.send_HTTP_BAD_REQUEST(redis_or_error.msg)
             end
 
             local result = redis_or_error:ping()

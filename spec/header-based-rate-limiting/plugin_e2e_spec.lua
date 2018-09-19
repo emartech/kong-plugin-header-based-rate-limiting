@@ -886,7 +886,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                         }
                     }))
 
-                    assert.res_status(200, delete_response )
+                    assert.res_status(200, delete_response)
 
                     local retrieval_response = assert(helpers.admin_client():send({
                         method = "GET",
@@ -906,6 +906,105 @@ describe("Plugin: header-based-rate-limiting (access)", function()
             end)
 
         end)
+
+        describe("/header-based-rate-limits/:id", function()
+            describe("DELETE", function()
+                context("when rate limit setting does not exist", function()
+                    it("should respond with error", function()
+
+                        local delete_response = assert(helpers.admin_client():send({
+                            method = "DELETE",
+                            path = "/header-based-rate-limits/123456789",
+                            headers = {
+                                ["Content-Type"] = "application/json"
+                            }
+                        }))
+
+                        local raw_response_body = assert.res_status(404, delete_response)
+                        local body = cjson.decode(raw_response_body)
+
+                        assert.are.same('Resource does not exist', body.message)
+                    end)
+                end)
+
+                context("when rate limit setting exists", function()
+                    it("should delete setting", function()
+
+                        local service_response = assert(helpers.admin_client():send({
+                            method = "POST",
+                            path = "/services/",
+                            body = {
+                                name = 'rate-limit-test-service',
+                                url = 'http://mockbin:8080/request'
+                            },
+                            headers = {
+                                ["Content-Type"] = "application/json"
+                            }
+                        }))
+
+                        local raw_service_response_body = assert.res_status(201, service_response)
+                        local service_id = cjson.decode(raw_service_response_body).id
+
+                        local first_rate_limit_response = assert(helpers.admin_client():send({
+                            method = "POST",
+                            path = "/header-based-rate-limits",
+                            body = {
+                                service_id = service_id,
+                                header_composition = { "test-integration", "87654321" },
+                                rate_limit = 5
+                            },
+                            headers = {
+                                ["Content-Type"] = "application/json"
+                            }
+                        }))
+
+                        assert.res_status(201, first_rate_limit_response)
+
+                        local rate_limit_response = assert(helpers.admin_client():send({
+                            method = "POST",
+                            path = "/header-based-rate-limits",
+                            body = {
+                                service_id = service_id,
+                                header_composition = { "test-integration", "12345678" },
+                                rate_limit = 10
+                            },
+                            headers = {
+                                ["Content-Type"] = "application/json"
+                            }
+                        }))
+
+                        local raw_rate_limit_setting = assert.res_status(201, rate_limit_response)
+                        local rate_limit_setting_id = cjson.decode(raw_rate_limit_setting).id
+
+
+                        local delete_response = assert(helpers.admin_client():send({
+                            method = "DELETE",
+                            path = "/header-based-rate-limits/" .. rate_limit_setting_id,
+                            headers = {
+                                ["Content-Type"] = "application/json"
+                            }
+                        }))
+
+                        assert.res_status(204, delete_response)
+
+                        local retrieval_response = assert(helpers.admin_client():send({
+                            method = "GET",
+                            path = "/header-based-rate-limits",
+                            query = { service_id = service_id },
+                            headers = {
+                                ["Content-Type"] = "application/json"
+                            }
+                        }))
+
+                        local raw_body = assert.res_status(200, retrieval_response)
+                        local body = cjson.decode(raw_body)
+
+                        assert.are.same(1, #body.data)
+                    end)
+                end)
+            end)
+        end)
+
     end)
 
     describe("Rate limiting", function()

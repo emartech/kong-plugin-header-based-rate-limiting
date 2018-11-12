@@ -4,10 +4,9 @@ services:
   kong:
     build: .
     depends_on:
-      kong-database:
-        condition: service_healthy
-      kong-redis:
-        condition: service_started
+      - kong-database
+      - kong-redis
+      - mockbin
     environment:
       - KONG_DATABASE=postgres
       - KONG_PG_HOST=kong-database
@@ -32,10 +31,6 @@ services:
       - 8001:8001
       - 8443:8443
       - 8444:8444
-    healthcheck:
-      test: ["CMD-SHELL", "curl -I -s -L http://127.0.0.1:8000 || exit 1"]
-      interval: 5s
-      retries: 10
     volumes:
       - .:/kong-plugins
       - ./spec/kong_tests.conf:/kong/spec/kong_tests.conf
@@ -47,11 +42,6 @@ services:
       - POSTGRES_USER=kong
       - POSTGRES_DB=kong
       - POSTGRES_PASSWORD=kong
-    healthcheck:
-      test: ["CMD", "pg_isready", "-U", "postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 #    volumes:
 #      - ./.docker/postgres-data:/var/lib/postgresql/data:rw
 

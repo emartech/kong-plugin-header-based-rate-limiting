@@ -25,8 +25,7 @@ publish: ## Build and publish plugin to luarocks
 	docker-compose run kong bash -c "cd /kong-plugins && chmod +x publish.sh && ./publish.sh"
 
 test: ## Run tests
-	docker-compose up -d
-	docker-compose run kong bash -c "cd /kong && bin/busted /kong-plugins/spec"
+	docker-compose run kong bash -c "cd /kong && bin/kong migrations up && bin/busted /kong-plugins/spec"
 	docker-compose down
 
 dev-env: ## Creates a service (myservice) and attaches a plugin to it (header-based-rate-limiting)

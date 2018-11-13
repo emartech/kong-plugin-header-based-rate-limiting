@@ -28,6 +28,14 @@ test: ## Run tests
 	docker-compose run kong bash -c "cd /kong && bin/kong migrations up && bin/busted /kong-plugins/spec"
 	docker-compose down
 
+unit: ## Run unit tests
+	docker-compose run kong bash -c "cd /kong && bin/kong migrations up && bin/busted --exclude-tags='e2e' /kong-plugins/spec"
+	docker-compose down
+
+e2e: ## Run end to end tests
+	docker-compose run kong bash -c "cd /kong && bin/kong migrations up && bin/busted -t 'e2e' /kong-plugins/spec"
+	docker-compose down
+
 dev-env: ## Creates a service (myservice) and attaches a plugin to it (header-based-rate-limiting)
 	bash -c "curl -i -X POST --url http://localhost:8001/services/ --data 'name=testapi' --data 'protocol=http' --data 'host=mockbin' --data 'path=/request' --data 'port=8080'"
 	bash -c "curl -i -X POST --url http://localhost:8001/services/testapi/routes/ --data 'paths[]=/'"

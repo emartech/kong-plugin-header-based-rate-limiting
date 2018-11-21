@@ -3,6 +3,21 @@ local utils = require "kong.tools.utils"
 
 local RedisFactory = require "kong.plugins.header-based-rate-limiting.redis_factory"
 
+local function rtrim(s, chars)
+    if not chars then
+        chars = '%s'
+    else
+        chars = '[' .. chars .. ']'
+    end
+    local n = #s
+    while n > 0 and s:find('^' .. chars, n) do n = n - 1 end
+    return s:sub(1, n)
+end
+
+local function trim_postfix_wildcards(encoded_header_composition)
+    return rtrim(encoded_header_composition, '*,')
+end
+
 local function decode_headers(encoded_header_composition)
     local individual_headers = utils.split(encoded_header_composition, ",")
 
@@ -46,7 +61,8 @@ local function encode_header_composition(header_based_rate_limit)
 
     for key, value in pairs(header_based_rate_limit) do
         if key == "header_composition" then
-            result["header_composition"] = encode_headers(value)
+            local encoded_header_composition = encode_headers(value)
+            result["header_composition"] = trim_postfix_wildcards(encoded_header_composition)
         else
             result[key] = value
         end

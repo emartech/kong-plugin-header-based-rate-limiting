@@ -705,6 +705,41 @@ describe("Plugin: header-based-rate-limiting (access)", function()
 
                     assert.res_status(201, response)
                 end)
+
+                it("should trim postfix wildcards on the header composition", function()
+                    local service_response = assert(helpers.admin_client():send({
+                        method = "POST",
+                        path = "/services/",
+                        body = {
+                            name = 'rate-limit-test-service',
+                            url = 'http://mockbin:8080/request'
+                        },
+                        headers = {
+                            ["Content-Type"] = "application/json"
+                        }
+                    }))
+
+                    local raw_service_response_body = assert.res_status(201, service_response)
+                    local service_id = cjson.decode(raw_service_response_body).id
+
+                    local response = assert(helpers.admin_client():send({
+                        method = "POST",
+                        path = "/header-based-rate-limits",
+                        body = {
+                            service_id = service_id,
+                            header_composition = { "test-integration", "*", "*" },
+                            rate_limit = 10
+                        },
+                        headers = {
+                            ["Content-Type"] = "application/json"
+                        }
+                    }))
+
+                    local raw_body = assert.res_status(201, response)
+                    local body = cjson.decode(raw_body)
+
+                    assert.are.same(body.header_composition, { "test-integration" })
+                end)
             end)
 
             describe("GET", function()

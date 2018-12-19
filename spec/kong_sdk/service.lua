@@ -11,4 +11,12 @@ function Service:list_routes(service_id_or_name)
     })
 end
 
+function Service:add_plugin(service_id_or_name, plugin_data)
+    return self:request({
+        method = "POST",
+        path = self.PATH .. "/" .. service_id_or_name .. "/plugins",
+        body = plugin_data
+    })
+end
+
 return Service

@@ -53,11 +53,13 @@ local function handle_admin_client_response(request, response, err)
 
     local raw_body = assert(response:read_body())
 
+    local body = try_decode(raw_body)
+
     if is_error(response) then
-        error(table.concat({ request.method, request.path, response.status, raw_body }, " "))
+        error({ method = request.method, path = request.path, status = response.status, body = body })
     end
 
-    return try_decode(raw_body)
+    return body
 end
 
 function KongSdk.from_admin_client()

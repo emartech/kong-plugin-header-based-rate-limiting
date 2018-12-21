@@ -41,6 +41,9 @@ dev-env: ## Creates a service (myservice) and attaches a plugin to it (header-ba
 	bash -c "curl -i -X POST --url http://localhost:8001/services/testapi/routes/ --data 'paths[]=/'"
 	bash -c "curl -i -X POST --url http://localhost:8001/services/testapi/plugins/ --data 'name=header-based-rate-limiting' --data 'config.redis.host=kong-redis' --data 'config.default_rate_limit=10' --data 'config.log_only=false' --data 'config.forward_headers_to_upstream=true' --data 'config.identification_headers=x-customer-id,x-consumer-username'"
 
+add-plugin:
+	bash -c "curl -i -X POST --url http://localhost:8001/services/testapi/plugins/ --data 'name=header-based-rate-limiting' --data 'config.redis.host=kong-redis' --data 'config.default_rate_limit=10' --data 'config.log_only=false' --data 'config.forward_headers_to_upstream=true' --data 'config.identification_headers=x-customer-id,x-consumer-username'"
+
 ping: ## Pings kong on localhost:8000
 	bash -c "curl -i http://localhost:8000"
 

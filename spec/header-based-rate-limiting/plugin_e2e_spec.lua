@@ -47,7 +47,10 @@ describe("Plugin: header-based-rate-limiting (access)", function()
     end)
 
     before_each(function()
-        helpers.dao:truncate_tables()
+        helpers.db:truncate()
+        for _, dao in pairs(helpers.db.daos) do
+            dao:truncate()
+        end
         redis:flushall()
     end)
 

@@ -33,7 +33,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
     local kong_sdk, send_request, send_admin_request
 
     setup(function()
-        helpers.start_kong({ custom_plugins = "header-based-rate-limiting" })
+        helpers.start_kong({ plugins = "bundled,header-based-rate-limiting" })
 
         kong_sdk = KongSdk.from_admin_client()
 

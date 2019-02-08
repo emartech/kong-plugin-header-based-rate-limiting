@@ -1,8 +1,6 @@
-local cjson_safe = require "cjson.safe"
+local cjson = require "cjson"
 local helpers = require "spec.helpers"
-local pgmoon = require "pgmoon"
 local KongSdk = require "spec.kong_sdk"
-
 local RedisFactory = require "kong.plugins.header-based-rate-limiting.redis_factory"
 
 local function create_request_sender(http_client)
@@ -10,11 +8,10 @@ local function create_request_sender(http_client)
         local response = assert(http_client:send(request))
 
         local raw_body = assert(response:read_body())
-
-        local parsed_body = cjson_safe.decode(raw_body)
+        local success, parsed_body = pcall(cjson.decode, raw_body)
 
         return {
-            body = parsed_body or raw_body,
+            body = success and parsed_body or raw_body,
             headers = response.headers,
             status = response.status
         }
@@ -33,7 +30,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
     local kong_sdk, send_request, send_admin_request
 
     setup(function()
-        helpers.start_kong({ plugins = "bundled,header-based-rate-limiting" })
+        helpers.start_kong({ plugins = "key-auth,header-based-rate-limiting" })
 
         kong_sdk = KongSdk.from_admin_client()
 
@@ -43,14 +40,11 @@ describe("Plugin: header-based-rate-limiting (access)", function()
     end)
 
     teardown(function()
-        helpers.stop_kong(nil)
+        helpers.stop_kong()
     end)
 
     before_each(function()
         helpers.db:truncate()
-        for _, dao in pairs(helpers.db.daos) do
-            dao:truncate()
-        end
         redis:flushall()
     end)
 
@@ -1324,17 +1318,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
         end)
 
         local function wipe_rate_limit_rules()
-            local pg = pgmoon.new({
-                host = "kong-database",
-                port = 5432,
-                database = "kong",
-                user = "kong",
-                password = "kong"
-            })
-
-            assert(pg:connect())
-            assert(pg:query("TRUNCATE header_based_rate_limits"))
-            assert(pg:disconnect())
+            helpers.dao.header_based_rate_limits:truncate()
         end
 
         context("when DB becomes unreachable", function()

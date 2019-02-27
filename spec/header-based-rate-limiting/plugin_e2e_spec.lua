@@ -376,6 +376,20 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                     assert.are.equal(201, response.status)
                     assert.are.same(response.body.header_composition, { "test-integration" })
                 end)
+
+                it("should trim postfix NULLs from the header composition", function()
+                    local response = send_admin_request({
+                        method = "POST",
+                        path = "/header-based-rate-limits",
+                        body = '{"service_id": "' .. service.id .. '", "header_composition": ["test-integration", null, null], "rate_limit": 10}',
+                        headers = {
+                            ["Content-Type"] = "application/json"
+                        }
+                    })
+
+                    assert.are.equal(201, response.status)
+                    assert.are.same(response.body.header_composition, { "test-integration" })
+                end)
             end)
 
             describe("GET", function()

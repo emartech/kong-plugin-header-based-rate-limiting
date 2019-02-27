@@ -1,5 +1,6 @@
 local crud = require "kong.api.crud_helpers"
 local utils = require "kong.tools.utils"
+local cjson = require "cjson"
 
 local RedisFactory = require "kong.plugins.header-based-rate-limiting.redis_factory"
 
@@ -45,11 +46,15 @@ local function decode_header_composition(header_based_rate_limit)
     return result
 end
 
+local function is_wildcard(header)
+    return header == "*" or header == cjson.null
+end
+
 local function encode_headers(header_composition)
     local encoded_headers = {}
 
     for _, header in ipairs(header_composition) do
-        local encoded_header = header == "*" and "*" or ngx.encode_base64(header)
+        local encoded_header = is_wildcard(header) and "*" or ngx.encode_base64(header)
         table.insert(encoded_headers, encoded_header)
     end
 

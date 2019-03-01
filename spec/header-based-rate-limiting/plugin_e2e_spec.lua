@@ -1,22 +1,6 @@
-local cjson = require "cjson"
 local helpers = require "spec.helpers"
-local KongSdk = require "spec.kong_sdk"
+local test_helpers = require "kong_client.spec.test_helpers"
 local RedisFactory = require "kong.plugins.header-based-rate-limiting.redis_factory"
-
-local function create_request_sender(http_client)
-    return function(request)
-        local response = assert(http_client:send(request))
-
-        local raw_body = assert(response:read_body())
-        local success, parsed_body = pcall(cjson.decode, raw_body)
-
-        return {
-            body = success and parsed_body or raw_body,
-            headers = response.headers,
-            status = response.status
-        }
-    end
-end
 
 describe("Plugin: header-based-rate-limiting (access)", function()
     local redis = RedisFactory.create({
@@ -32,11 +16,9 @@ describe("Plugin: header-based-rate-limiting (access)", function()
     setup(function()
         helpers.start_kong({ plugins = "key-auth,header-based-rate-limiting" })
 
-        kong_sdk = KongSdk.from_admin_client()
-
-        send_request = create_request_sender(helpers.proxy_client())
-
-        send_admin_request = create_request_sender(helpers.admin_client())
+        kong_sdk = test_helpers.create_kong_client()
+        send_request = test_helpers.create_request_sender(helpers.proxy_client())
+        send_admin_request = test_helpers.create_request_sender(helpers.admin_client())
     end)
 
     teardown(function()
@@ -67,10 +49,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                 it("should respond with HTTP 404", function()
                     local response = send_admin_request({
                         method = "GET",
-                        path = "/plugins/8d29de00-9fea-11e8-98d0-529269fb1459/redis-ping",
-                        headers = {
-                            ["Content-Type"] = "application/json"
-                        }
+                        path = "/plugins/8d29de00-9fea-11e8-98d0-529269fb1459/redis-ping"
                     })
 
                     assert.are.equal(404, response.status)
@@ -86,10 +65,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
 
                     local response = send_admin_request({
                         method = "GET",
-                        path = "/plugins/" .. plugin.id .. "/redis-ping",
-                        headers = {
-                            ["Content-Type"] = "application/json"
-                        }
+                        path = "/plugins/" .. plugin.id .. "/redis-ping"
                     })
 
                     assert.are.equal(400, response.status)
@@ -113,10 +89,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
 
                     local response = send_admin_request({
                         method = "GET",
-                        path = "/plugins/" .. plugin.id .. "/redis-ping",
-                        headers = {
-                            ["Content-Type"] = "application/json"
-                        }
+                        path = "/plugins/" .. plugin.id .. "/redis-ping"
                     })
 
                     assert.are.equal(400, response.status)
@@ -143,10 +116,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
 
                     local response = send_admin_request({
                         method = "GET",
-                        path = "/plugins/" .. plugin.id .. "/redis-ping",
-                        headers = {
-                            ["Content-Type"] = "application/json"
-                        }
+                        path = "/plugins/" .. plugin.id .. "/redis-ping"
                     })
 
                     assert.are.equal(400, response.status)
@@ -169,10 +139,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
 
                 local response = send_admin_request({
                     method = "GET",
-                    path = "/plugins/" .. plugin.id .. "/redis-ping",
-                    headers = {
-                        ["Content-Type"] = "application/json"
-                    }
+                    path = "/plugins/" .. plugin.id .. "/redis-ping"
                 })
 
                 assert.are.equal(200, response.status)
@@ -206,9 +173,6 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                             service_id = service.id,
                             header_composition = {},
                             rate_limit = 10
-                        },
-                        headers = {
-                            ["Content-Type"] = "application/json"
                         }
                     })
 
@@ -225,9 +189,6 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                             route_id = route.id,
                             header_composition = {},
                             rate_limit = 10
-                        },
-                        headers = {
-                            ["Content-Type"] = "application/json"
                         }
                     })
 
@@ -245,9 +206,6 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                             route_id = route.id,
                             header_composition = header_composition,
                             rate_limit = 10
-                        },
-                        headers = {
-                            ["Content-Type"] = "application/json"
                         }
                     })
 
@@ -267,9 +225,6 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                             service_id = service.id,
                             header_composition = header_composition,
                             rate_limit = 10
-                        },
-                        headers = {
-                            ["Content-Type"] = "application/json"
                         }
                     })
 
@@ -288,9 +243,6 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                             route_id = route.id,
                             header_composition = header_composition,
                             rate_limit = 10
-                        },
-                        headers = {
-                            ["Content-Type"] = "application/json"
                         }
                     })
 
@@ -313,9 +265,6 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                                 route_id = route.id,
                                 header_composition = header_composition,
                                 rate_limit = 10
-                            },
-                            headers = {
-                                ["Content-Type"] = "application/json"
                             }
                         })
 
@@ -332,9 +281,6 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                             route_id = route.id,
                             header_composition = { "test-integration", "*", "12345678" },
                             rate_limit = 10
-                        },
-                        headers = {
-                            ["Content-Type"] = "application/json"
                         }
                     })
 
@@ -350,9 +296,6 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                             route_id = route.id,
                             header_composition = { "*", "*", "12345678" },
                             rate_limit = 10
-                        },
-                        headers = {
-                            ["Content-Type"] = "application/json"
                         }
                     })
 
@@ -367,9 +310,6 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                             service_id = service.id,
                             header_composition = { "test-integration", "*", "*" },
                             rate_limit = 10
-                        },
-                        headers = {
-                            ["Content-Type"] = "application/json"
                         }
                     })
 
@@ -402,9 +342,6 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                         body = {
                             header_composition = header_composition,
                             rate_limit = 10
-                        },
-                        headers = {
-                            ["Content-Type"] = "application/json"
                         }
                     })
 
@@ -412,10 +349,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
 
                     local retrieval_response = send_admin_request({
                         method = "GET",
-                        path = "/header-based-rate-limits",
-                        headers = {
-                            ["Content-Type"] = "application/json"
-                        }
+                        path = "/header-based-rate-limits"
                     })
 
                     assert.are.equal(200, retrieval_response.status)
@@ -434,9 +368,6 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                             body = {
                                 header_composition = { "test-integration" .. i, "12345678" },
                                 rate_limit = 10
-                            },
-                            headers = {
-                                ["Content-Type"] = "application/json"
                             }
                         })
 
@@ -445,10 +376,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
 
                     local retrieval_response = send_admin_request({
                         method = "GET",
-                        path = "/header-based-rate-limits",
-                        headers = {
-                            ["Content-Type"] = "application/json"
-                        }
+                        path = "/header-based-rate-limits"
                     })
 
                     assert.are.equal(200, retrieval_response.status)
@@ -474,9 +402,6 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                                 service_id = my_service.id,
                                 header_composition = { "test-integration" .. i, "12345678" },
                                 rate_limit = 10
-                            },
-                            headers = {
-                                ["Content-Type"] = "application/json"
                             }
                         })
 
@@ -486,10 +411,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                     local retrieval_response = assert(send_admin_request({
                         method = "GET",
                         path = "/header-based-rate-limits",
-                        query = { service_id = service.id },
-                        headers = {
-                            ["Content-Type"] = "application/json"
-                        }
+                        query = { service_id = service.id }
                     }))
 
                     assert.are.equal(200, retrieval_response.status)
@@ -516,9 +438,6 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                             service_id = service.id,
                             header_composition = { "test-integration", "12345678" },
                             rate_limit = 10
-                        },
-                        headers = {
-                            ["Content-Type"] = "application/json"
                         }
                     })
 
@@ -527,10 +446,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                     local delete_response = send_admin_request({
                         method = "DELETE",
                         path = "/header-based-rate-limits",
-                        query = { service_id = service.id },
-                        headers = {
-                            ["Content-Type"] = "application/json"
-                        }
+                        query = { service_id = service.id }
                     })
 
                     assert.are.equal(200, delete_response.status)
@@ -538,10 +454,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                     local retrieval_response = send_admin_request({
                         method = "GET",
                         path = "/header-based-rate-limits",
-                        query = { service_id = service.id },
-                        headers = {
-                            ["Content-Type"] = "application/json"
-                        }
+                        query = { service_id = service.id }
                     })
 
                     assert.are.equal(200, retrieval_response.status)
@@ -560,10 +473,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                     it("should respond with error", function()
                         local response = send_admin_request({
                             method = "DELETE",
-                            path = "/header-based-rate-limits/123456789",
-                            headers = {
-                                ["Content-Type"] = "application/json"
-                            }
+                            path = "/header-based-rate-limits/123456789"
                         })
 
                         assert.are.equal(404, response.status)
@@ -588,9 +498,6 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                                     service_id = service.id,
                                     header_composition = { "test-integration", "12345678" .. i },
                                     rate_limit = 10
-                                },
-                                headers = {
-                                    ["Content-Type"] = "application/json"
                                 }
                             })
 
@@ -601,10 +508,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
 
                         local delete_response = send_admin_request({
                             method = "DELETE",
-                            path = "/header-based-rate-limits/" .. rate_limits[1].id,
-                            headers = {
-                                ["Content-Type"] = "application/json"
-                            }
+                            path = "/header-based-rate-limits/" .. rate_limits[1].id
                         })
 
                         assert.are.equal(204, delete_response.status)
@@ -612,10 +516,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                         local retrieval_response = send_admin_request({
                             method = "GET",
                             path = "/header-based-rate-limits",
-                            query = { service_id = service.id },
-                            headers = {
-                                ["Content-Type"] = "application/json"
-                            }
+                            query = { service_id = service.id }
                         })
 
                         assert.are.equal(200, retrieval_response.status)
@@ -635,10 +536,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
             local response = send_admin_request({
                 method = "POST",
                 path = "/header-based-rate-limits",
-                body = config,
-                headers = {
-                    ["Content-Type"] = "application/json"
-                }
+                body = config
             })
 
             assert.are.equal(201, response.status)
@@ -1012,10 +910,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                     local key_response = send_admin_request({
                         method = "POST",
                         path = "/consumers/" .. consumer.id .. "/key-auth",
-                        body = {},
-                        headers = {
-                            ["Content-Type"] = "application/json"
-                        }
+                        body = {}
                     })
 
                     assert.are.equal(201, key_response.status)

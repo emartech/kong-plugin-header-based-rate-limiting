@@ -7,7 +7,8 @@ return {
                 fields = {
                     host = { type = "string", required = true },
                     port = { type = "number", required = true, default = 6379 },
-                    db = { type = "number", required = true, default = 0 }
+                    db = { type = "number", required = true, default = 0 },
+                    timeout_in_milliseconds = { type = "number", required = true, default = 1000 }
                 }
             }
         },

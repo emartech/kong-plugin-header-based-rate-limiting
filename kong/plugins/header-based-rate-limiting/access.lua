@@ -79,6 +79,11 @@ function Access.execute(conf)
 
         pool:increment(rate_limit_key)
     end
+
+    redis:set_keepalive(
+        conf.redis.max_idle_timeout_in_milliseconds or 1000,
+        conf.redis.pool_size or 10
+    )
 end
 
 return Access

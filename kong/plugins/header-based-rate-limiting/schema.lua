@@ -8,7 +8,9 @@ return {
                     host = { type = "string", required = true },
                     port = { type = "number", required = true, default = 6379 },
                     db = { type = "number", required = true, default = 0 },
-                    timeout_in_milliseconds = { type = "number", required = true, default = 1000 }
+                    timeout_in_milliseconds = { type = "number", required = true, default = 1000 },
+                    max_idle_timeout_in_milliseconds = { type = "number", required = true, default = 1000 },
+                    pool_size = { type = "number", required = true, default = 10 }
                 }
             }
         },

@@ -58,21 +58,9 @@ function Access.execute(conf)
         ngx.req.set_header(POOL_RESET_HEADER, time_reset)
     end
 
-    if request_count >= rate_limit_value then
-        if conf.forward_headers_to_upstream then
-            ngx.req.set_header("X-RateLimit-Decision", "block")
-        end
+    local rate_limit_exceeded = request_count >= rate_limit_value
 
-        if not conf.log_only then
-            responses.send(429, "Rate limit exceeded")
-        end
-
-        Logger.getInstance(ngx):logInfo({
-            ["msg"] = "Rate limit exceeded",
-            ["uri"] = ngx.var.request_uri,
-            ["identifier"] = rate_limit_identifier
-        })
-    else
+    if not rate_limit_exceeded then
         if conf.forward_headers_to_upstream then
             ngx.req.set_header("X-RateLimit-Decision", "allow")
         end
@@ -84,6 +72,22 @@ function Access.execute(conf)
         conf.redis.max_idle_timeout_in_milliseconds or 1000,
         conf.redis.pool_size or 10
     )
+
+    if rate_limit_exceeded then
+        if conf.forward_headers_to_upstream then
+            ngx.req.set_header("X-RateLimit-Decision", "block")
+        end
+
+        if conf.log_only then
+            Logger.getInstance(ngx):logInfo({
+                msg = "Rate limit exceeded",
+                uri = ngx.var.request_uri,
+                identifier = rate_limit_identifier
+            })
+        else
+            responses.send(429, "Rate limit exceeded")
+        end
+    end
 end
 
 return Access

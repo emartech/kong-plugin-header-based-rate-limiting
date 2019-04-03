@@ -33,7 +33,7 @@ function Access.execute(conf)
     local pool = RateLimitPool(redis, ngx)
 
     local actual_time = os.time()
-    local time_reset = os.date("!%Y-%m-%dT%H:%M:00Z", actual_time + 60)
+    local time_reset = actual_time + 60
 
     local rate_limit_subject = RateLimitSubject.from_request_headers(conf.identification_headers, ngx.req.get_headers())
     local rate_limit_identifier = rate_limit_subject:identifier()

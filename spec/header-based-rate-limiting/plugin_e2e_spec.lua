@@ -608,7 +608,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
             end)
 
             it("should set rate limit headers", function()
-                local time_reset = os.date("!%Y-%m-%dT%H:%M:00Z", os.time() + 60)
+                local time_reset = tostring(os.time() + 60)
 
                 kong_sdk.services:add_plugin(service.id, {
                     name = "header-based-rate-limiting",
@@ -942,7 +942,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
             it("should append rate limit headers to the request", function()
                 local rate_limit = 4
                 local expected_remaining = rate_limit - 1
-                local time_reset = os.date("!%Y-%m-%dT%H:%M:00Z", os.time() + 60)
+                local time_reset = tostring(os.time() + 60)
                 local customer_id = 123456789
 
                 kong_sdk.plugins:create({

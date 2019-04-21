@@ -119,13 +119,14 @@ return {
 
     ['/header-based-rate-limits/:id'] = {
         DELETE = function(self, dao_factory, helpers)
-            local setting, err = dao_factory.header_based_rate_limits:find_all({["id"] = self.params.id})
+            local settings, err = dao_factory.header_based_rate_limits:find_all({ id = self.params.id })
+            local setting = settings and settings[1]
 
-            if err then
+            if err or not setting then
                 helpers.responses.send_HTTP_NOT_FOUND('Resource does not exist')
             end
 
-            crud.delete({id = self.params.id}, dao_factory.header_based_rate_limits)
-        end,
+            crud.delete(setting, dao_factory.header_based_rate_limits)
+        end
     }
 }

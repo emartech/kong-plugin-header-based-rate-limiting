@@ -28,6 +28,12 @@ test: ## Run tests
 	docker-compose run kong bash -c "cd /kong && bin/kong migrations up && bin/busted /kong-plugins/spec"
 	docker-compose down
 
+test-full: ## Run tests
+	docker-compose run kong bash -c "cd /kong && bin/kong migrations up && bin/busted /kong-plugins/spec"
+	docker-compose -f docker-compose.yml -f docker-compose-cassandra.yml down
+	docker-compose -f docker-compose.yml -f docker-compose-cassandra.yml run kong bash -c "/wait-for-it.sh kong-database-cassandra:9042 -t 0 && cd /kong && bin/kong migrations up && bin/busted /kong-plugins/spec"
+	docker-compose -f docker-compose.yml -f docker-compose-cassandra.yml down
+
 unit: ## Run unit tests
 	docker-compose run kong bash -c "cd /kong && bin/kong migrations up && bin/busted --exclude-tags='e2e' /kong-plugins/spec"
 	docker-compose down

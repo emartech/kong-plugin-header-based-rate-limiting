@@ -1,0 +1,19 @@
+version: '3'
+
+services:
+  kong:
+    depends_on:
+      - kong-database
+      - kong-database-cassandra
+      - kong-redis
+      - mockbin
+    environment:
+      - KONG_DATABASE=cassandra
+      - KONG_TEST_DATABASE=cassandra
+      - KONG_CASSANDRA_CONTACT_POINTS=kong-database-cassandra
+      - KONG_DB_UPDATE_PROPAGATION=1
+
+  kong-database-cassandra:
+    image: cassandra:3
+    ports:
+      - 9042:9042

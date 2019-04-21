@@ -2,6 +2,8 @@ local helpers = require "spec.helpers"
 local test_helpers = require "kong_client.spec.test_helpers"
 local RedisFactory = require "kong.plugins.header-based-rate-limiting.redis_factory"
 
+local database_type = os.getenv("KONG_DATABASE") or "postgres"
+
 describe("Plugin: header-based-rate-limiting (access)", function()
     local redis = RedisFactory.create({
         host = "kong-redis",
@@ -12,13 +14,18 @@ describe("Plugin: header-based-rate-limiting (access)", function()
     local default_rate_limit = 3
 
     local kong_sdk, send_request, send_admin_request
+    local blueprints, db, dao
 
     setup(function()
-        helpers.start_kong({ plugins = "key-auth,header-based-rate-limiting" })
+        assert(helpers.start_kong({
+            plugins = "key-auth,header-based-rate-limiting",
+            database = database_type
+        }))
 
         kong_sdk = test_helpers.create_kong_client()
         send_request = test_helpers.create_request_sender(helpers.proxy_client())
         send_admin_request = test_helpers.create_request_sender(helpers.admin_client())
+        blueprints, db, dao = helpers.get_db_utils()
     end)
 
     teardown(function()
@@ -26,7 +33,8 @@ describe("Plugin: header-based-rate-limiting (access)", function()
     end)
 
     before_each(function()
-        helpers.db:truncate()
+        assert(db:truncate())
+        dao:truncate_tables()
         redis:flushall()
     end)
 

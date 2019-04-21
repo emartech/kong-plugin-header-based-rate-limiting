@@ -7,6 +7,7 @@ local RateLimitPool = require "kong.plugins.header-based-rate-limiting.rate_limi
 local RateLimitRule = require "kong.plugins.header-based-rate-limiting.rate_limit_rule"
 local RateLimitModel = require "kong.plugins.header-based-rate-limiting.rate_limit_model"
 local RedisFactory = require "kong.plugins.header-based-rate-limiting.redis_factory"
+local get_null_uuid = require "kong.plugins.header-based-rate-limiting.get_null_uuid"
 local Logger = require "logger"
 
 local RATE_LIMIT_HEADER = "X-RateLimit-Limit"
@@ -41,7 +42,10 @@ function Access.execute(conf)
 
     local request_count = pool:request_count(rate_limit_key)
 
-    local cache_key = singletons.dao.header_based_rate_limits:cache_key(conf.service_id, conf.route_id, rate_limit_subject:encoded_identifier())
+    local service_id = conf.service_id or get_null_uuid(singletons.dao.db.name)
+    local route_id = conf.route_id or get_null_uuid(singletons.dao.db.name)
+
+    local cache_key = singletons.dao.header_based_rate_limits:cache_key(service_id, route_id, rate_limit_subject:encoded_identifier())
     local rate_limit_value = singletons.cache:get(cache_key, nil, load_rate_limit_value, singletons.dao.db, conf, rate_limit_subject)
 
     local remaining_requests = calculate_remaining_request_count(request_count, rate_limit_value)

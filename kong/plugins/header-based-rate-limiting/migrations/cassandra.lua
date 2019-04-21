@@ -7,12 +7,11 @@ return {
                 service_id uuid,
                 route_id uuid,
                 header_composition text,
-                rate_limit integer,
-                PRIMARY KEY (id)
+                rate_limit int,
+                PRIMARY KEY (service_id, route_id, header_composition)
               );
-              CREATE INDEX IF NOT EXISTS header_based_rate_limits_header_composition_idx ON header_based_rate_limits(header_composition);
-              CREATE INDEX IF NOT EXISTS header_based_rate_limits_service_id_idx ON header_based_rate_limits(service_id);
-              CREATE INDEX IF NOT EXISTS header_based_rate_limits_route_id_idx ON header_based_rate_limits(route_id);
+
+              CREATE INDEX ON header_based_rate_limits (id);
             ]],
         down = [[
               DROP TABLE header_based_rate_limits;

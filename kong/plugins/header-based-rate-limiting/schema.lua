@@ -17,6 +17,6 @@ return {
         default_rate_limit = { type = "number", required = true },
         log_only = { type = "boolean", required = true, default = false },
         identification_headers = { type = "array", required = true },
-        forward_headers_to_upstream = { type = "boolean", default = false}
+        forward_headers_to_upstream = { type = "boolean", default = false }
     }
 }

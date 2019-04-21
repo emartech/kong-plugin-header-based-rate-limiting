@@ -2,9 +2,10 @@ local singletons = require "kong.singletons"
 local utils = require "kong.tools.utils"
 
 local RateLimitModel = require "kong.plugins.header-based-rate-limiting.rate_limit_model"
+local get_null_uuid = require "kong.plugins.header-based-rate-limiting.get_null_uuid"
 
 local function is_null_or_exists(entity_db, entity_id)
-    if not entity_id then
+    if not entity_id or entity_id == get_null_uuid(singletons.dao.db.name) then
         return true
     end
 
@@ -67,14 +68,21 @@ local function validate_header_composition(encoded_header_composition, header_ba
     return check_unique(encoded_header_composition, header_based_rate_limit)
 end
 
+local db_type = kong and kong.configuration.database or "postgres"
+local primary_key = { "id" }
+
+if db_type == "cassandra" then
+    primary_key = { "service_id", "route_id", "header_composition" }
+end
+
 local SCHEMA = {
-    primary_key = { "id" },
+    primary_key = primary_key,
     table = "header_based_rate_limits",
     cache_key = { "service_id", "route_id", "header_composition" },
     fields = {
         id = { type = "id", dao_insert_value = true },
-        service_id = { type = "id", func = check_whether_service_exists },
-        route_id = { type = "id", func = check_whether_route_exists },
+        service_id = { type = "id", func = check_whether_service_exists, default = get_null_uuid(db_type) },
+        route_id = { type = "id", func = check_whether_route_exists, default = get_null_uuid(db_type) },
         header_composition = { type = "string", required = true, func = validate_header_composition },
         rate_limit = { type = "number", required = true }
     }

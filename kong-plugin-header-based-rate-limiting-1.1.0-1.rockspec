@@ -1,9 +1,9 @@
 package = "kong-plugin-header-based-rate-limiting"
-version = "1.0.0-1"
+version = "1.1.0-1"
 supported_platforms = {"linux", "macosx"}
 source = {
   url = "git+https://github.com/emartech/kong-plugin-header-based-rate-limiting.git",
-  tag = "1.0.0"
+  tag = "1.1.0"
 }
 description = {
   summary = "Rate limit incoming requests based on its headers.",
@@ -31,6 +31,7 @@ build = {
     ["kong.plugins.header-based-rate-limiting.rate_limit_rule"] = "kong/plugins/header-based-rate-limiting/rate_limit_rule.lua",
     ["kong.plugins.header-based-rate-limiting.rate_limit_subject"] = "kong/plugins/header-based-rate-limiting/rate_limit_subject.lua",
     ["kong.plugins.header-based-rate-limiting.redis_factory"] = "kong/plugins/header-based-rate-limiting/redis_factory.lua",
+    ["kong.plugins.header-based-rate-limiting.get_null_uuid"] = "kong/plugins/header-based-rate-limiting/get_null_uuid.lua",
     ["kong.plugins.header-based-rate-limiting.migrations.cassandra"] = "kong/plugins/header-based-rate-limiting/migrations/cassandra.lua",
     ["kong.plugins.header-based-rate-limiting.migrations.postgres"] = "kong/plugins/header-based-rate-limiting/migrations/postgres.lua",
   }

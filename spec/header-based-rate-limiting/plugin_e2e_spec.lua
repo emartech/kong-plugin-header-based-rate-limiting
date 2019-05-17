@@ -4,6 +4,10 @@ local RedisFactory = require "kong.plugins.header-based-rate-limiting.redis_fact
 
 local database_type = os.getenv("KONG_DATABASE") or "postgres"
 
+local function difference(number1, number2)
+    return math.abs(number1 - number2)
+end
+
 describe("Plugin: header-based-rate-limiting (access)", function()
     local redis = RedisFactory.create({
         host = "kong-redis",
@@ -613,11 +617,12 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                 })
 
                 assert.are.equal(429, response.status)
+                assert.are.same({
+                    message = "Rate limit exceeded"
+                }, response.body)
             end)
 
             it("should set rate limit headers", function()
-                local time_reset = tostring(os.time() + 60)
-
                 kong_sdk.services:add_plugin(service.id, {
                     name = "header-based-rate-limiting",
                     config = {
@@ -632,6 +637,8 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                 for i = 1, default_rate_limit do
                     local expected_remaining = default_rate_limit - i
 
+                    local expected_reset = os.time() + 60
+
                     local response = send_request({
                         method = "GET",
                         path = "/test-route",
@@ -643,8 +650,13 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                     assert.are.equal(200, response.status)
                     assert.are.equal(tostring(expected_remaining), response.headers["x-ratelimit-remaining"])
                     assert.are.equal(tostring(default_rate_limit), response.headers["x-ratelimit-limit"])
-                    assert.are.equal(time_reset, response.headers["x-ratelimit-reset"])
+
+                    local x_ratelimit_reset = tonumber(response.headers["x-ratelimit-reset"])
+
+                    assert.is_true(difference(x_ratelimit_reset, expected_reset) <= 1)
                 end
+
+                local expected_reset = os.time() + 60
 
                 local response = send_request({
                     method = "GET",
@@ -657,7 +669,10 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                 assert.are.equal(429, response.status)
                 assert.are.equal("0", response.headers["x-ratelimit-remaining"])
                 assert.are.equal(tostring(default_rate_limit), response.headers["x-ratelimit-limit"])
-                assert.are.equal(time_reset, response.headers["x-ratelimit-reset"])
+
+                local x_ratelimit_reset = tonumber(response.headers["x-ratelimit-reset"])
+
+                assert.is_true(difference(x_ratelimit_reset, expected_reset) <= 1)
             end)
 
             context("when there are multiple consumers", function()
@@ -950,7 +965,6 @@ describe("Plugin: header-based-rate-limiting (access)", function()
             it("should append rate limit headers to the request", function()
                 local rate_limit = 4
                 local expected_remaining = rate_limit - 1
-                local time_reset = tostring(os.time() + 60)
                 local customer_id = 123456789
 
                 kong_sdk.plugins:create({
@@ -974,6 +988,8 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                     rate_limit = rate_limit
                 })
 
+                local expected_reset = os.time() + 60
+
                 local response = send_request({
                     method = "GET",
                     path = "/test-route",
@@ -988,8 +1004,11 @@ describe("Plugin: header-based-rate-limiting (access)", function()
 
                 assert.are.equal(tostring(expected_remaining), body_headers["x-ratelimit-remaining"])
                 assert.are.equal(tostring(rate_limit), body_headers["x-ratelimit-limit"])
-                assert.are.equal(time_reset, body_headers["x-ratelimit-reset"])
                 assert.are.equal("allow", body_headers["x-ratelimit-decision"])
+
+                local x_ratelimit_reset = tonumber(body_headers["x-ratelimit-reset"])
+
+                assert.is_true(difference(x_ratelimit_reset, expected_reset) <= 1)
             end)
         end)
 

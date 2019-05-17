@@ -1,5 +1,4 @@
 local Object = require "classic"
-local Logger = require "logger"
 
 local RateLimitPool = Object:extend()
 
@@ -19,11 +18,10 @@ function RateLimitPool:request_count(key)
     local request_count, err = self.redis:get(key)
 
     if not request_count then
-        Logger.getInstance(self.nginx):logError({
-            ["error"] = err,
-            ["msg"] = "Redis failure"
+        error({
+            msg = "Redis failure",
+            reason = err
         })
-        error(err)
     end
 
     if request_count == self.nginx.null then

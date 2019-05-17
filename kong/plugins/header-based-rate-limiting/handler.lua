@@ -1,6 +1,6 @@
+local Logger = require "logger"
 local BasePlugin = require "kong.plugins.base_plugin"
 local Access = require "kong.plugins.header-based-rate-limiting.access"
-local Logger = require "logger"
 
 local HeaderBasedRateLimitingHandler = BasePlugin:extend()
 

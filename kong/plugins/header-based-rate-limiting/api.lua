@@ -1,31 +1,18 @@
-local crud = require "kong.api.crud_helpers"
-local utils = require "kong.tools.utils"
 local cjson = require "cjson"
-
+local crud = require "kong.api.crud_helpers"
+local split = require("kong.tools.utils").split
 local RedisFactory = require "kong.plugins.header-based-rate-limiting.redis_factory"
 
-local function rtrim(s, chars)
-    if not chars then
-        chars = '%s'
-    else
-        chars = '[' .. chars .. ']'
-    end
-    local n = #s
-    while n > 0 and s:find('^' .. chars, n) do n = n - 1 end
-    return s:sub(1, n)
-end
-
-local function trim_postfix_wildcards(encoded_header_composition)
-    return rtrim(encoded_header_composition, '*,')
-end
+local decode_base64 = ngx.decode_base64
+local encode_base64 = ngx.encode_base64
 
 local function decode_headers(encoded_header_composition)
-    local individual_headers = utils.split(encoded_header_composition, ",")
-
+    local individual_headers = split(encoded_header_composition, ",")
     local decoded_headers = {}
 
     for _, header in ipairs(individual_headers) do
-        local decoded_header = header == "*" and "*" or ngx.decode_base64(header)
+        local decoded_header = header == "*" and "*" or decode_base64(header)
+
         table.insert(decoded_headers, decoded_header)
     end
 
@@ -54,11 +41,16 @@ local function encode_headers(header_composition)
     local encoded_headers = {}
 
     for _, header in ipairs(header_composition) do
-        local encoded_header = is_wildcard(header) and "*" or ngx.encode_base64(header)
+        local encoded_header = is_wildcard(header) and "*" or encode_base64(header)
+
         table.insert(encoded_headers, encoded_header)
     end
 
     return table.concat(encoded_headers, ",")
+end
+
+local function trim_postfix_wildcards(encoded_header_composition)
+    return select(1, encoded_header_composition:gsub("[,*]+$", ""))
 end
 
 local function encode_header_composition(header_based_rate_limit)
@@ -66,8 +58,7 @@ local function encode_header_composition(header_based_rate_limit)
 
     for key, value in pairs(header_based_rate_limit) do
         if key == "header_composition" then
-            local encoded_header_composition = encode_headers(value)
-            result["header_composition"] = trim_postfix_wildcards(encoded_header_composition)
+            result["header_composition"] = trim_postfix_wildcards(encode_headers(value))
         else
             result[key] = value
         end
@@ -101,9 +92,10 @@ return {
         end
     },
 
-    ['/header-based-rate-limits'] = {
+    ["/header-based-rate-limits"] = {
         POST = function(self, dao_factory, helpers)
             local params_with_encoded_header_composition = encode_header_composition(self.params)
+
             crud.post(params_with_encoded_header_composition, dao_factory.header_based_rate_limits, decode_header_composition)
         end,
 
@@ -117,13 +109,13 @@ return {
         end
     },
 
-    ['/header-based-rate-limits/:id'] = {
+    ["/header-based-rate-limits/:id"] = {
         DELETE = function(self, dao_factory, helpers)
             local settings, err = dao_factory.header_based_rate_limits:find_all({ id = self.params.id })
             local setting = settings and settings[1]
 
             if err or not setting then
-                helpers.responses.send_HTTP_NOT_FOUND('Resource does not exist')
+                helpers.responses.send_HTTP_NOT_FOUND("Resource does not exist")
             end
 
             crud.delete(setting, dao_factory.header_based_rate_limits)

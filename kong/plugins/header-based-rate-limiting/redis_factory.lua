@@ -1,28 +1,47 @@
 local Redis = require "resty.redis"
 
+local function set_timeout(redis, timeout_in_ms)
+    local success, err = pcall(redis.set_timeout, redis, timeout_in_ms)
+
+    if not success then
+        error({
+            msg = "Error while setting Redis timeout",
+            reason = err
+        })
+    end
+end
+
+local function connect(redis, host, port)
+    local success, err = redis:connect(host, port)
+
+    if not success then
+        error({
+            msg = "Could not connect to Redis",
+            reason = err
+        })
+    end
+end
+
+local function select_db(redis, db)
+    local success, err = redis:select(db)
+
+    if not success then
+        error({
+            msg = "Could not select Redis DB",
+            reason = err
+        })
+    end
+end
+
 return {
     create = function(config)
         local redis = Redis:new()
 
-        local redis_timeout_in_milliseconds = (config.timeout or 1000)
+        set_timeout(redis, config.timeout or 1000)
 
-        local success, _ = pcall(redis.set_timeout, redis, redis_timeout_in_milliseconds)
+        connect(redis, config.host, config.port)
 
-        if not success then
-            error({ msg = "Error while setting Redis timeout"})
-        end
-
-        local success, _ = redis:connect(config.host, config.port)
-
-        if not success then
-            error({ msg = "Could not connect to Redis" })
-        end
-
-        local success, _ = redis:select(config.db)
-
-        if not success then
-            error({ msg = "Could not select Redis DB" })
-        end
+        select_db(redis, config.db)
 
         return redis
     end

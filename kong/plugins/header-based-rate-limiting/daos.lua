@@ -1,11 +1,9 @@
-local singletons = require "kong.singletons"
 local utils = require "kong.tools.utils"
-
 local RateLimitModel = require "kong.plugins.header-based-rate-limiting.rate_limit_model"
 local get_null_uuid = require "kong.plugins.header-based-rate-limiting.get_null_uuid"
 
 local function is_null_or_exists(entity_db, entity_id)
-    if not entity_id or entity_id == get_null_uuid(singletons.dao.db.name) then
+    if not entity_id or entity_id == get_null_uuid(kong.db.strategy) then
         return true
     end
 
@@ -13,49 +11,57 @@ local function is_null_or_exists(entity_db, entity_id)
 
     if not err and res then
         return true
-    else
-        return false
     end
+
+    return false
 end
 
 local function check_whether_service_exists(service_id)
-    if is_null_or_exists(singletons.db.services, service_id) then
+    if is_null_or_exists(kong.db.services, service_id) then
         return true
-    else
-        return false, "The referenced service '" .. service_id .. "' does not exist."
     end
+
+    return false, ("The referenced service '%s' does not exist."):format(service_id)
 end
 
 local function check_whether_route_exists(route_id)
-    if is_null_or_exists(singletons.db.routes, route_id) then
-        return true
-    else
-        return false, "The referenced route '" .. route_id .. "' does not exist."
-    end
-end
-
-local function check_unique(encoded_header_composition, header_based_rate_limit)
-    local model = RateLimitModel(singletons.dao.db)
-    local custom_rate_limits = model:get(header_based_rate_limit.service_id, header_based_rate_limit.route_id, { encoded_header_composition })
-
-    if #custom_rate_limits > 0 then
-        return false, "A header based rate limit is already configured for this combination of service, route and header composition."
-    else
+    if is_null_or_exists(kong.db.routes, route_id) then
         return true
     end
+
+    return false, ("The referenced route '%s' does not exist."):format(route_id)
 end
 
 local function check_infix(encoded_header_composition)
     local individual_headers = utils.split(encoded_header_composition, ",")
     local prev_header
+
     for _, header in ipairs(individual_headers) do
         if header == "*" and prev_header ~= nil and prev_header ~= "*" then
-           return false, "Infix wildcards are not allowed in a header composition."
+            return false, "Infix wildcards are not allowed in a header composition."
         end
 
         prev_header = header
     end
+
     return true
+end
+
+local function check_unique(encoded_header_composition, header_based_rate_limit)
+    local model = RateLimitModel(kong.dao.db)
+    local custom_rate_limits = model:get(
+        header_based_rate_limit.service_id,
+        header_based_rate_limit.route_id,
+        {
+            encoded_header_composition
+        }
+    )
+
+    if #custom_rate_limits == 0 then
+        return true
+    end
+
+    return false, "A header based rate limit is already configured for this combination of service, route and header composition."
 end
 
 local function validate_header_composition(encoded_header_composition, header_based_rate_limit)

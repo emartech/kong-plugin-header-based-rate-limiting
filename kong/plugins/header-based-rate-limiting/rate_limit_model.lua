@@ -36,8 +36,8 @@ local query_strategies = {
     postgres = function(db, service_id, route_id, encoded_header_compositions)
         return db:query(string.format(
             "SELECT * FROM header_based_rate_limits WHERE (%s) AND (%s) AND (%s)",
-            (service_id and "service_id = '" .. service_id .. "'" or " service_id is NULL"),
-            (route_id and "route_id = '" .. route_id .. "'" or "route_id is NULL"),
+            (service_id and ("service_id = '%s'"):format(service_id) or "service_id is NULL"),
+            (route_id and ("route_id = '%s'"):format(route_id) or "route_id is NULL"),
             header_composition_constraint(encoded_header_compositions)
         ))
     end

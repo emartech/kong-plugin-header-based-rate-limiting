@@ -1,5 +1,7 @@
 local Object = require "classic"
 
+local encode_base64 = ngx.encode_base64
+
 local function header_content(header)
     if type(header) == "table" then
         return header[#header]
@@ -41,7 +43,7 @@ function RateLimitSubject:encoded_identifier_array()
     local encoded_identifiers = {}
 
     for _, identifier in ipairs(self.identifiers) do
-        table.insert(encoded_identifiers, ngx.encode_base64(identifier))
+        table.insert(encoded_identifiers, encode_base64(identifier))
     end
 
     return encoded_identifiers

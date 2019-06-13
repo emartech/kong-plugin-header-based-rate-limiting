@@ -28,12 +28,12 @@ end
 
 function Access.execute(conf)
     local redis = RedisFactory.create(conf.redis)
-    local pool = RateLimitPool(redis, ngx)
+    local pool = RateLimitPool(redis)
 
     local actual_time = os.time()
     local time_reset = actual_time + 60
 
-    local rate_limit_subject = RateLimitSubject.from_request_headers(conf.identification_headers, ngx.req.get_headers())
+    local rate_limit_subject = RateLimitSubject.from_request_headers(conf.identification_headers, kong.request.get_headers())
     local rate_limit_identifier = rate_limit_subject:identifier()
     local rate_limit_key = RateLimitKey.generate(rate_limit_identifier, conf, actual_time)
 

@@ -4,9 +4,12 @@ local RateLimitPool = Object:extend()
 
 RateLimitPool.TTL = 300
 
-function RateLimitPool:new(redis, nginx)
+local function is_string(request_count)
+    return type(request_count) == "string"
+end
+
+function RateLimitPool:new(redis)
     self.redis = redis
-    self.nginx = nginx
 end
 
 function RateLimitPool:increment(key)
@@ -24,7 +27,7 @@ function RateLimitPool:request_count(key)
         })
     end
 
-    if request_count == self.nginx.null then
+    if not is_string(request_count) then
         return 0
     end
 

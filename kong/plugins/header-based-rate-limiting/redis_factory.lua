@@ -37,7 +37,7 @@ return {
     create = function(config)
         local redis = Redis:new()
 
-        set_timeout(redis, config.timeout or 1000)
+        set_timeout(redis, config.timeout_in_milliseconds or 1000)
 
         connect(redis, config.host, config.port)
 

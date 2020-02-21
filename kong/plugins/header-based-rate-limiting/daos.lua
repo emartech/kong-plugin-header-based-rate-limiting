@@ -1,4 +1,5 @@
-local utils = require "kong.tools.utils"
+local typedefs = require "kong.db.schema.typedefs"
+local split = require("kong.tools.utils").split
 local RateLimitModel = require "kong.plugins.header-based-rate-limiting.rate_limit_model"
 local get_null_uuid = require "kong.plugins.header-based-rate-limiting.get_null_uuid"
 
@@ -33,7 +34,7 @@ local function check_whether_route_exists(route_id)
 end
 
 local function check_infix(encoded_header_composition)
-    local individual_headers = utils.split(encoded_header_composition, ",")
+    local individual_headers = split(encoded_header_composition, ",")
     local prev_header
 
     for _, header in ipairs(individual_headers) do
@@ -48,7 +49,7 @@ local function check_infix(encoded_header_composition)
 end
 
 local function check_unique(encoded_header_composition, header_based_rate_limit)
-    local model = RateLimitModel(kong.dao.db)
+    local model = RateLimitModel(kong.db)
     local custom_rate_limits = model:get(
         header_based_rate_limit.service_id,
         header_based_rate_limit.route_id,
@@ -82,15 +83,42 @@ if db_type == "cassandra" then
 end
 
 local SCHEMA = {
+    name = "header_based_rate_limits",
     primary_key = primary_key,
-    table = "header_based_rate_limits",
     cache_key = { "service_id", "route_id", "header_composition" },
+    generate_admin_api = false,
     fields = {
-        id = { type = "id", dao_insert_value = true },
-        service_id = { type = "id", func = check_whether_service_exists, default = get_null_uuid(db_type) },
-        route_id = { type = "id", func = check_whether_route_exists, default = get_null_uuid(db_type) },
-        header_composition = { type = "string", required = true, func = validate_header_composition },
-        rate_limit = { type = "number", required = true }
+        { id = typedefs.uuid },
+        { service_id = { type = "string", default = get_null_uuid(db_type)} },
+        { route_id = { type = "string", default = get_null_uuid(db_type)} },
+        { header_composition = { type = "string", required = true } },
+        { rate_limit = { type = "number", required = true } }
+    },
+    entity_checks = {
+        { custom_entity_check = {
+            field_sources = { "service_id", "route_id", "header_composition" },
+            fn = function(entity)
+                if entity.service_id ~= ngx.null then
+                    local valid, error_message = check_whether_service_exists(entity.service_id)
+                    if not valid then
+                        return false, error_message
+                    end
+                end
+                if entity.route_id ~= ngx.null then
+                    local valid, error_message = check_whether_route_exists(entity.route_id)
+                    if not valid then
+                        return false, error_message
+                    end
+                end
+                if entity.header_composition ~= ngx.null then
+                    local valid, error_message = validate_header_composition(entity.header_composition, entity)
+                    if not valid then
+                        return false, error_message
+                    end
+                end
+                return true
+            end
+        } }
     }
 }
 

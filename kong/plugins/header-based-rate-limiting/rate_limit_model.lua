@@ -36,16 +36,16 @@ local query_strategies = {
     postgres = function(db, service_id, route_id, encoded_header_compositions)
         return db:query(string.format(
             "SELECT * FROM header_based_rate_limits WHERE (%s) AND (%s) AND (%s)",
-            (service_id and ("service_id = '%s'"):format(service_id) or "service_id is NULL"),
-            (route_id and ("route_id = '%s'"):format(route_id) or "route_id is NULL"),
+            (service_id ~= ngx.null and ("service_id = '%s'"):format(service_id) or "service_id is NULL"),
+            (route_id ~= ngx.null and ("route_id = '%s'"):format(route_id) or "route_id is NULL"),
             header_composition_constraint(encoded_header_compositions)
         ))
     end
 }
 
 local function query_custom_rate_limits(db, service_id, route_id, encoded_header_compositions)
-    local query_strategy = query_strategies[db.name]
-    local custom_rate_limits, err = query_strategy(db, service_id, route_id, encoded_header_compositions)
+    local query_strategy = query_strategies[db.strategy]
+    local custom_rate_limits, err = query_strategy(db.connector, service_id, route_id, encoded_header_compositions)
 
     if not custom_rate_limits then
         error(err)

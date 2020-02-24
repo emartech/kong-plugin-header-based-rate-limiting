@@ -2,4 +2,4 @@
   service: kong
   steps:
     - name: run_tests
-      command: bash -c "/kong/bin/kong migrations up && cd /kong && bin/busted /kong-plugins/spec"
+      command: bash -c "/kong/bin/kong migrations up || kong migrations bootstrap && cd /kong && bin/busted /kong-plugins/spec"

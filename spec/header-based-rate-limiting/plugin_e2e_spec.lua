@@ -1,6 +1,7 @@
 local helpers = require "spec.helpers"
 local test_helpers = require "kong_client.spec.test_helpers"
 local RedisFactory = require "kong.plugins.header-based-rate-limiting.redis_factory"
+local uuid = require "kong.tools.utils".uuid
 
 local database_type = os.getenv("KONG_DATABASE") or "postgres"
 
@@ -18,7 +19,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
     local default_rate_limit = 3
 
     local kong_sdk, send_request, send_admin_request
-    local blueprints, db, dao
+    local blueprints, db
 
     setup(function()
         assert(helpers.start_kong({
@@ -29,7 +30,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
         kong_sdk = test_helpers.create_kong_client()
         send_request = test_helpers.create_request_sender(helpers.proxy_client())
         send_admin_request = test_helpers.create_request_sender(helpers.admin_client())
-        blueprints, db, dao = helpers.get_db_utils()
+        blueprints, db = helpers.get_db_utils()
     end)
 
     teardown(function()
@@ -38,13 +39,12 @@ describe("Plugin: header-based-rate-limiting (access)", function()
 
     before_each(function()
         assert(db:truncate())
-        dao:truncate_tables()
         redis:flushall()
     end)
 
     describe("admin API", function()
 
-        describe("/plugins/:plugin_id/redis-ping", function()
+        describe("/plugins/:plugins/redis-ping", function()
 
             local service
 
@@ -65,13 +65,14 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                     })
 
                     assert.are.equal(404, response.status)
+                    assert.are.equal("Not found", response.body.message)
                 end)
             end)
 
             context("when the plugin is not a header-based-rate-limiting", function()
                 it("should respond with HTTP 400", function()
                     local plugin = kong_sdk.plugins:create({
-                        service_id = service.id,
+                        service = { id = service.id },
                         name = "key-auth"
                     })
 
@@ -88,7 +89,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
             context("when Redis connection fails", function()
                 it("should respond with HTTP 400", function()
                     local plugin = kong_sdk.plugins:create({
-                        service_id = service.id,
+                        service = { id = service.id },
                         name = "header-based-rate-limiting",
                         config = {
                             redis = {
@@ -117,7 +118,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                     }
 
                     local plugin = kong_sdk.plugins:create({
-                        service_id = service.id,
+                        service = { id = service.id },
                         name = "header-based-rate-limiting",
                         config = {
                             redis = non_existent_db,
@@ -138,7 +139,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
 
             it("should respond with HTTP 200", function()
                 local plugin = kong_sdk.plugins:create({
-                    service_id = service.id,
+                    service = { id = service.id },
                     name = "header-based-rate-limiting",
                     config = {
                         redis = {
@@ -163,7 +164,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
         describe("/header-based-rate-limits", function()
 
             describe("POST", function()
-                local service, route
+                local service, route, header_composition
 
                 before_each(function()
                     service = kong_sdk.services:create({
@@ -172,44 +173,45 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                     })
 
                     route = kong_sdk.routes:create_for_service(service.id, "/custom-rate-limit-route")
+
+                    header_composition = { "test-integration", "12345678" }
                 end)
 
                 it("should fail when the service does not exist", function()
-                    kong_sdk.routes:delete(route.id)
-                    kong_sdk.services:delete(service.id)
+                    local service_id = "non-existing-service-id"
 
                     local response = send_admin_request({
                         method = "POST",
                         path = "/header-based-rate-limits",
                         body = {
-                            service_id = service.id,
-                            header_composition = {},
+                            service_id = service_id,
+                            header_composition = header_composition,
                             rate_limit = 10
                         }
                     })
 
                     assert.are.equal(400, response.status)
+                    assert.are.equal("schema violation (The referenced service '" .. service_id .. "' does not exist.)", response.body.message)
                 end)
 
                 it("should fail when the route does not exist", function()
-                    kong_sdk.routes:delete(route.id)
+                    local route_id = "non-existing-route-id"
 
                     local response = send_admin_request({
                         method = "POST",
                         path = "/header-based-rate-limits",
                         body = {
-                            route_id = route.id,
-                            header_composition = {},
+                            route_id = route_id,
+                            header_composition = header_composition,
                             rate_limit = 10
                         }
                     })
 
                     assert.are.equal(400, response.status)
+                    assert.are.equal("schema violation (The referenced route '" .. route_id .. "' does not exist.)", response.body.message)
                 end)
 
                 it("should store the provided settings", function()
-                    local header_composition = { "test-integration", "12345678" }
-
                     local response = send_admin_request({
                         method = "POST",
                         path = "/header-based-rate-limits",
@@ -228,8 +230,6 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                 end)
 
                 it("should store the provided settings when only service is provided", function()
-                    local header_composition = { "test-integration", "12345678" }
-
                     local response = send_admin_request({
                         method = "POST",
                         path = "/header-based-rate-limits",
@@ -246,7 +246,6 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                 end)
 
                 it("should store the provided settings when only route is provided", function()
-                    local header_composition = { "test-integration", "12345678" }
 
                     local response = send_admin_request({
                         method = "POST",
@@ -264,8 +263,6 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                 end)
 
                 it("should fail on duplicate settings", function()
-                    local header_composition = { "test-integration", "12345678" }
-
                     local expected_status_codes = { 201, 400 }
 
                     for _, expected_status in ipairs(expected_status_codes) do
@@ -345,6 +342,17 @@ describe("Plugin: header-based-rate-limiting (access)", function()
             end)
 
             describe("GET", function()
+                local service, route
+
+                before_each(function()
+                    service = kong_sdk.services:create({
+                        name = "rate-limit-test-service",
+                        url = "http://mockbin:8080/request"
+                    })
+
+                    route = kong_sdk.routes:create_for_service(service.id, "/custom-rate-limit-route")
+                end)
+
                 it("should return the previously created settings", function()
                     local header_composition = { "test-integration", "12345678" }
 
@@ -352,6 +360,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                         method = "POST",
                         path = "/header-based-rate-limits",
                         body = {
+                            service_id = service.id,
                             header_composition = header_composition,
                             rate_limit = 10
                         }
@@ -393,45 +402,6 @@ describe("Plugin: header-based-rate-limiting (access)", function()
 
                     assert.are.equal(200, retrieval_response.status)
                     assert.are.equal(2, #retrieval_response.body.data)
-                end)
-
-                it("should be able to return settings filtered by service", function()
-                    local service = kong_sdk.services:create({
-                        name = "other-test-service",
-                        url = "http://mockbin:8080/request"
-                    })
-
-                    local rate_limit_services = {
-                        { id = nil },
-                        service
-                    }
-
-                    for i, my_service in ipairs(rate_limit_services) do
-                        local response = send_admin_request({
-                            method = "POST",
-                            path = "/header-based-rate-limits",
-                            body = {
-                                service_id = my_service.id,
-                                header_composition = { "test-integration" .. i, "12345678" },
-                                rate_limit = 10
-                            }
-                        })
-
-                        assert.are.equal(201, response.status)
-                    end
-
-                    local retrieval_response = assert(send_admin_request({
-                        method = "GET",
-                        path = "/header-based-rate-limits",
-                        query = { service_id = service.id }
-                    }))
-
-                    assert.are.equal(200, retrieval_response.status)
-
-                    local rules = retrieval_response.body.data
-
-                    assert.are.equal(1, #rules)
-                    assert.are.equal(service.id, rules[1].service_id)
                 end)
             end)
 
@@ -477,7 +447,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
 
         end)
 
-        describe("/header-based-rate-limits/:id", function()
+        describe("/header-based-rate-limits/:header-based-rate-limits", function()
 
             describe("DELETE", function()
 
@@ -485,7 +455,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                     it("should respond with error", function()
                         local response = send_admin_request({
                             method = "DELETE",
-                            path = "/header-based-rate-limits/123456789"
+                            path = "/header-based-rate-limits/" .. uuid()
                         })
 
                         assert.are.equal(404, response.status)
@@ -777,7 +747,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                 it("should track rate limit pools separately", function()
                     local other_route = kong_sdk.routes:create_for_service(service.id, "/other-test-route")
 
-                    local services = {
+                    local routes = {
                         {
                             route_id = route.id,
                             route_path = route.paths[1],
@@ -790,7 +760,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                         }
                     }
 
-                    for _, config in ipairs(services) do
+                    for _, config in ipairs(routes) do
                         kong_sdk.routes:add_plugin(config.route_id, {
                             name = "header-based-rate-limiting",
                             config = {
@@ -815,7 +785,7 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                         return response
                     end
 
-                    for _, config in ipairs(services) do
+                    for _, config in ipairs(routes) do
                         for _ = 1, config.rate_limit do
                             assert.are.equal(200, make_request(config.route_path).status)
                         end
@@ -968,8 +938,8 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                 local customer_id = 123456789
 
                 kong_sdk.plugins:create({
-                    service_id = service.id,
-                    route_id = route.id,
+                    service = { id = service.id },
+                    route = { id = route.id },
                     name = "header-based-rate-limiting",
                     config = {
                         redis = {
@@ -1052,8 +1022,8 @@ describe("Plugin: header-based-rate-limiting (access)", function()
             local customer_id = "123456789"
 
             kong_sdk.plugins:create({
-                service_id = service.id,
-                route_id = route.id,
+                service = { id = service.id },
+                route = { id = route.id },
                 name = "header-based-rate-limiting",
                 config = {
                     redis = {
@@ -1112,8 +1082,8 @@ describe("Plugin: header-based-rate-limiting (access)", function()
 
         it("should find an exact match with wildcard among the header compositions", function()
             kong_sdk.plugins:create({
-                service_id = service.id,
-                route_id = route.id,
+                service = { id = service.id },
+                route = { id = route.id },
                 name = "header-based-rate-limiting",
                 config = {
                     redis = {
@@ -1216,8 +1186,8 @@ describe("Plugin: header-based-rate-limiting (access)", function()
             local customer_id = "123456789"
 
             kong_sdk.plugins:create({
-                service_id = service.id,
-                route_id = route.id,
+                service = { id = service.id },
+                route = { id = route.id },
                 name = "header-based-rate-limiting",
                 config = {
                     redis = {
@@ -1254,7 +1224,8 @@ describe("Plugin: header-based-rate-limiting (access)", function()
         end)
 
         local function wipe_rate_limit_rules()
-            helpers.dao.header_based_rate_limits:truncate()
+            --helpers.dao.header_based_rate_limits:truncate()
+            assert(db.header_based_rate_limits:truncate())
         end
 
         context("when DB becomes unreachable", function()
@@ -1263,8 +1234,8 @@ describe("Plugin: header-based-rate-limiting (access)", function()
                 local customer_id = "123456789"
 
                 kong_sdk.plugins:create({
-                    service_id = service.id,
-                    route_id = route.id,
+                    service = { id = service.id },
+                    route = { id = route.id },
                     name = "header-based-rate-limiting",
                     config = {
                         redis = {

@@ -32,7 +32,7 @@ end
 
 function RateLimitRule:find(service_id, route_id, subject)
     local entity_identifier = subject:encoded_identifier_array()
-    local rate_limit_from_rules = find_applicable_rate_limit(self.model, service_id, route_id, entity_identifier)
+    local rate_limit_from_rules = find_applicable_rate_limit(self.model, service_id or ngx.null, route_id or ngx.null, entity_identifier)
 
     return rate_limit_from_rules or self.default_rate_limit
 end

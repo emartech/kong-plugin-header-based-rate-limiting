@@ -42,8 +42,8 @@ function Access.execute(conf)
     local service_id = conf.service_id or get_null_uuid(kong.db.strategy)
     local route_id = conf.route_id or get_null_uuid(kong.db.strategy)
 
-    local cache_key = kong.dao.header_based_rate_limits:cache_key(service_id, route_id, rate_limit_subject:encoded_identifier())
-    local rate_limit_value = kong.cache:get(cache_key, nil, load_rate_limit_value, kong.dao.db, conf, rate_limit_subject)
+    local cache_key = kong.db.header_based_rate_limits:cache_key(service_id or "", route_id, rate_limit_subject:encoded_identifier())
+    local rate_limit_value = kong.cache:get(cache_key, nil, load_rate_limit_value, kong.db, conf, rate_limit_subject)
 
     local remaining_requests = calculate_remaining_request_count(request_count, rate_limit_value)
 

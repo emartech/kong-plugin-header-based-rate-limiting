@@ -8,29 +8,29 @@ The plugin enables rate limiting of API requests based on a customizable composi
 
 ### Enabling the plugin
 
-**POST** http://localhost:8001/plugins
+**POST** `http://localhost:8001/plugins`
 
 ```json
 {
-	"name": "header-based-rate-limiting",
-	"service_id": "...",
-	"route_id": "...",
-	"config": {
-		"redis": {
-			"host": "redis-host",
-			"port": 6379,
-			"db": 0
-		},
-		"default_rate_limit": 10,
-		"log_only": false,
-		"identification_headers": [
-			"X-Country",
-			"X-County",
-			"X-City",
-			"X-Street",
-			"X-House"
-		]
-	}
+    "name": "header-based-rate-limiting",
+    "service_id": "...",
+    "route_id": "...",
+    "config": {
+        "redis": {
+            "host": "redis-host",
+            "port": 6379,
+            "db": 0
+        },
+        "default_rate_limit": 10,
+        "log_only": false,
+        "identification_headers": [
+            "X-Country",
+            "X-County",
+            "X-City",
+            "X-Street",
+            "X-House"
+        ]
+    }
 }
 ```
 
@@ -45,7 +45,7 @@ The plugin enables rate limiting of API requests based on a customizable composi
 
 ### Adding rate limit rules
 
-**POST** http://localhost:8001/header-based-rate-limits
+**POST** `http://localhost:8001/header-based-rate-limits`
 
 ```json
 {
@@ -70,9 +70,7 @@ The plugin enables rate limiting of API requests based on a customizable composi
 | rate_limit | Rate limit pool size to be applied | |
 
 > Although the `service_id` and `route_id` attributes are optional, if they are provided, the related service and route objects must be present in Kong's data store.
-
 > There may be only one rule configured for a `service_id`, `route_id`, and `header_composition` combination.
-
 > Rules are bound to the service and/or route object to which the plugin is attached. This enables separate rate limit settings for the same entity (designated by the identification headers) on different routes and/or services.
 
 ## Header composition
@@ -132,9 +130,11 @@ If no match was found (using the matchers above), the default pool size will be 
 ## Development environment
 
 ### Checkout the Git repository
+
 `git clone git@github.com:emartech/kong-plugin-header-based-rate-limiting.git`
 
 ### Build / re-build development Docker image
+
 `make build`
 
 ### Start / stop / restart Kong
@@ -168,16 +168,16 @@ If no match was found (using the matchers above), the default pool size will be 
 ## Publish new release
 
 - set LUAROCKS_API_KEY environment variable
-    - retrieve your API key from [LuaRocks](https://luarocks.org/settings/api-keys)
-    - `echo "export LUAROCKS_API_KEY=<my LuaRocks API key>" >> ~/.bash_profile`
+  - retrieve your API key from [LuaRocks](https://luarocks.org/settings/api-keys)
+  - `echo "export LUAROCKS_API_KEY=<my LuaRocks API key>" >> ~/.bash_profile`
 - set version number
-    - rename *.rockspec file
-    - change the *version* and *source.tag* in rockspec file
-    - commit and push changes
-        - `git commit -m "Bump version"`
-        - `git push`
-    - tag the current revision
-        - `git tag x.y.z`
-        - `git push --tags`
+  - rename *.rockspec file
+  - change the *version* and *source.tag* in rockspec file
+  - commit and push changes
+    - `git commit -m "Bump version"`
+    - `git push`
+  - tag the current revision
+    - `git tag x.y.z`
+    - `git push --tags`
 - publish to LuaRocks
-    - `make publish`
+  - `make publish`

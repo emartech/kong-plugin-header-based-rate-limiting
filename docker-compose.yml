@@ -43,6 +43,8 @@ services:
       - POSTGRES_USER=kong
       - POSTGRES_DB=kong
       - POSTGRES_PASSWORD=kong
+#    volumes:
+#      - ./.docker/postgres-data:/var/lib/postgresql/data:rw
 
   kong-redis:
     image: redis

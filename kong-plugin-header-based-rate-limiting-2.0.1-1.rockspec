@@ -1,9 +1,9 @@
 package = "kong-plugin-header-based-rate-limiting"
-version = "2.0.0-1"
+version = "2.0.1-1"
 supported_platforms = {"linux", "macosx"}
 source = {
   url = "git+https://github.com/emartech/kong-plugin-header-based-rate-limiting.git",
-  tag = "2.0.0"
+  tag = "2.0.1"
 }
 description = {
   summary = "Rate limit incoming requests based on its headers.",
@@ -36,6 +36,7 @@ build = {
     ["kong.plugins.header-based-rate-limiting.migrations.postgres"] = "kong/plugins/header-based-rate-limiting/migrations/postgres.lua",
     ["kong.plugins.header-based-rate-limiting.migrations.000_base_header_based_rate_limiting"] = "kong/plugins/header-based-rate-limiting/migrations/000_base_header_based_rate_limiting.lua",
     ["kong.plugins.header-based-rate-limiting.migrations.001_120_to_200"] = "kong/plugins/header-based-rate-limiting/migrations/001_120_to_200.lua",
+    ["kong.plugins.header-based-rate-limiting.migrations.002_200_to_201"] = "kong/plugins/header-based-rate-limiting/migrations/002_200_to_201.lua",
     ["kong.plugins.header-based-rate-limiting.migrations.init"] = "kong/plugins/header-based-rate-limiting/migrations/init.lua",
   }
 }
